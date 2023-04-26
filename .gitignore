@@ -1,0 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.svg
+.csv
+.pyc
+!**/__pycache__/
