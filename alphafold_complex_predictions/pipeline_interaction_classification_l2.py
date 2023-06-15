@@ -117,7 +117,7 @@ def run_holdout_cv(large_dataset_padj_order, new_not_model_cols, test_pairs, tra
     train_df = large_dataset_padj_order[~(large_dataset_padj_order.id1.isin(test_pros)) & ~(large_dataset_padj_order.id2.isin(test_pros))]
     print (train_df.shape, large_dataset_padj_order.shape)
 
-    l1_lambdas = np.logspace(-5, 5, 11, base=10)
+    l1_lambdas = np.logspace(-5, 5, 51, base=10)
     data = []
     l1_names = [f'coefficients [L2={l1_lambda:.0e}]' for l1_lambda in l1_lambdas]
     
@@ -277,7 +277,7 @@ def holdout_cv_classification(binned = False, weights = False):
                 #print (dataset, r2, test_pair)
                     runs.append((dataset, r2, temp_pairs, test_pair, binned, weights))
     #now multithread 
-    with Pool(processes= 8) as pool:
+    with Pool() as pool:
         data = pool.starmap(run_one_model_combo_holdout_classification, runs)
     return pd.DataFrame(data)
 
@@ -299,7 +299,7 @@ def holdout_classification_final_models_compare_weights(dataset, r2, binned, wei
             for r2 in r2_cutoffs:
                 runs.append((dataset, r2, test_pair, binned, weights, best_l1, max_or_min))
     #now multithread 
-    with Pool(processes= 8) as pool:
+    with Pool() as pool:
         data = pool.starmap(run_defined_classification_l1_all_test_pairs, runs)
     return pd.DataFrame(data)
 
@@ -430,7 +430,7 @@ def padj_cv_classification(binned = False, weights = False):
             if os.path.exists('./datasets/' + dataset + '_correl_reduced_r_' +r2 +'.csv'):
                 runs.append((dataset, r2,  binned, weights))
     #now multithread 
-    with Pool(processes= 8) as pool:
+    with Pool() as pool:
         data = pool.starmap(padj_run_one_model_combo_classification, runs)
     return pd.DataFrame(data)
 
@@ -470,7 +470,7 @@ def padj_run_cv_classification(large_dataset_padj_order, new_not_model_cols, use
     sk_split = StratifiedKFold(random_state= 1, shuffle = True)
     cv_inds = list(sk_split.split(X = np.zeros(train_df.shape[0]), y = train_df.binned.to_numpy()))
     
-    l1_lambdas = np.logspace(-5, 5, 11, base=10)
+    l1_lambdas = np.logspace(-5, 5, 51, base=10)
     data = []
     l1_names = [f'coefficients [L2={l1_lambda:.0e}]' for l1_lambda in l1_lambdas]
     

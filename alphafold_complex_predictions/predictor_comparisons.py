@@ -1,3 +1,5 @@
+#since these aren't trained on the data, we can run them on all the PPIs and the test set 
+
 from performance_figure_functions import *
 import numpy as np
 from sklearn.metrics import mean_squared_error, matthews_corrcoef, roc_auc_score, f1_score, average_precision_score
@@ -135,7 +137,7 @@ def get_all_baseline_sets():
 
     pop_merge =pop_df.merge(mp3_seq_values, how = 'left', on = ['P1', 'P2'] )
     to_correl = pop_merge[['P1', 'P2', 'popatov', 'ashr_log2FoldChange_HIS_TRP', 'bicpa_scores', 'icipa_core_vert_scores', 'icipa_nter_core_scores', 'order_padj_sets', 'binned']].dropna()
-    to_correl = to_correl[to_correl.order_padj_sets == 'test']
+    #to_correl = to_correl[to_correl.order_padj_sets == 'test']
 
     #average each test point like in other evaluations 
 
@@ -145,13 +147,27 @@ def get_all_baseline_sets():
     rows = []
     for col in ['popatov', 'bicpa_scores', 'icipa_core_vert_scores', 'icipa_nter_core_scores' ]:
             rows.append({
-                'dataset': z_names[col], 
-                'test_r2':  pearsonr(to_correl['ashr_log2FoldChange_HIS_TRP'], to_correl[col])[0] ** 2,
-                'test_spearman':  np.abs(spearmanr(to_correl['ashr_log2FoldChange_HIS_TRP'], to_correl[col])[0]),
-                'test_mccf1': get_mcc_f1_from_msrmts(to_correl['binned'] ==1 , to_correl[col]*-1)[0],
+                'dataset': z_names[col] + '_all', 
+                'mode': 'all',
+                'test_r2':  pearsonr(to_correl['ashr_log2FoldChange_HIS_TRP'], to_correl[col] * -1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(to_correl['ashr_log2FoldChange_HIS_TRP'], to_correl[col] * -1)[0]),
+                ##'test_mccf1': get_mcc_f1_from_msrmts(to_correl['binned'] ==1 , to_correl[col]*-1)[0],
                 'test_AUCROC':roc_auc_score(to_correl['binned'], to_correl['popatov'] *-1 ),
                 'test_avgpr':average_precision_score(to_correl['binned'], to_correl[col] *-1 )})
+    
+    #test set only
+    to_correl = to_correl[to_correl.order_padj_sets == 'test']
 
+    for col in ['popatov', 'bicpa_scores', 'icipa_core_vert_scores', 'icipa_nter_core_scores' ]:
+            rows.append({
+                'dataset': z_names[col] + '_test', 
+                'mode': 'test',
+                'test_r2':  pearsonr(to_correl['ashr_log2FoldChange_HIS_TRP'], to_correl[col] * -1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(to_correl['ashr_log2FoldChange_HIS_TRP'], to_correl[col] * -1)[0]),
+                ##'test_mccf1': get_mcc_f1_from_msrmts(to_correl['binned'] ==1 , to_correl[col]*-1)[0],
+                'test_AUCROC':roc_auc_score(to_correl['binned'], to_correl['popatov'] *-1 ),
+                'test_avgpr':average_precision_score(to_correl['binned'], to_correl[col] *-1 )})
+            
     df_barplot = pd.DataFrame(rows)
 
     rows = []
@@ -164,7 +180,7 @@ def get_all_baseline_sets():
             rows.append({
                 'dataset': z_names[col], 'test_r2':  pearsonr(pop_df_remaining['ashr_log2FoldChange_HIS_TRP'], pop_df_remaining[col])[0] ** 2,
                 'test_spearman':  np.abs(spearmanr(pop_df_remaining['ashr_log2FoldChange_HIS_TRP'], pop_df_remaining[col])[0]),
-                'test_mccf1': get_mcc_f1_from_msrmts(pop_df_remaining['binned'] ==1 , pop_df_remaining[col]*-1)[0],
+                #'test_mccf1': get_mcc_f1_from_msrmts(pop_df_remaining['binned'] ==1 , pop_df_remaining[col]*-1)[0],
                 'test_AUCROC':roc_auc_score(pop_df_remaining['binned'], pop_df_remaining['popatov'] *-1 ),
                 'test_avgpr':average_precision_score(pop_df_remaining['binned'], pop_df_remaining[col] *-1 )})
 
@@ -183,8 +199,7 @@ def get_all_baseline_sets():
         for col in ['popatov', 'bicpa_scores', 'icipa_core_vert_scores', 'icipa_nter_core_scores' ]:
             rows.append({
                 'dataset': z_names[col], 'test_r2':  pearsonr(pop_df_remaining['ashr_log2FoldChange_HIS_TRP'], pop_df_remaining[col])[0] ** 2,
-                'test_spearman':  np.abs(spearmanr(pop_df_remaining['ashr_log2FoldChange_HIS_TRP'], pop_df_remaining[col])[0]),
-                'test_mccf1': get_mcc_f1_from_msrmts(pop_df_remaining['binned'] ==1 , pop_df_remaining[col])[0]})
+                'test_spearman':  np.abs(spearmanr(pop_df_remaining['ashr_log2FoldChange_HIS_TRP'], pop_df_remaining[col])[0])})
 
     df_heldout_pop_two = pd.DataFrame(rows)
 
@@ -223,39 +238,99 @@ def get_holdout_padj_baselines():
 #v2
 from pipeline_interaction_regression_l2 import load_dataset_single
 
-def get_af_metrics_baselines():
+def get_af_metrics_baselines_train_test():
     #AF preds 
-    af_df,et  = load_dataset_single('v2', 'af')
-    test_df =  af_df[af_df.order_padj_sets == 'test']
-    avgs_test = test_df.groupby(['ppi']).mean()
 
     rows = []
+
+    af_df,et  = load_dataset_single('v2', 'af')
+    test_df =  af_df#[af_df.order_padj_sets == 'train']
+    avgs_test = test_df.groupby(['ppi']).mean()   
     for col in ['mean_plddt', 'ptm', 'iptm']:
             rows.append({
                 'dataset': 'v2',
+                'mode': 'all',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                'test_spearman': np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col]*-1)[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
+            
+    af_df,et  = load_dataset_single('v2', 'af')
+    test_df =  af_df[af_df.order_padj_sets == 'test']
+    avgs_test = test_df.groupby(['ppi']).mean()   
+    for col in ['mean_plddt', 'ptm', 'iptm']:
+            rows.append({
+                'dataset': 'v2',
+                'mode': 'test',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                'test_spearman': np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col]*-1)[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col])})
+
+    #next df 
+    af_df,et  = load_dataset_single('v1_512', 'af')
+    test_df =  af_df#[af_df.order_padj_sets == 'train']
+    avgs_test = test_df.groupby(['ppi']).mean()
+
+    for col in ['mean_plddt', 'ptm', 'iptm']:
+            rows.append({
+                'dataset': 'v1_512',
+                'mode': 'all',
                 'r2_cutoff': col, 
                 'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
                 'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
-                'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col]*-1)[0],
-                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
-                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
-
-    #next df 
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col])[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col]  )})
+            
+    
     af_df,et  = load_dataset_single('v1_512', 'af')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
 
     for col in ['mean_plddt', 'ptm', 'iptm']:
             rows.append({
-                'dataset': 'v1',
+                'dataset': 'v1_512',
+                'mode': 'test',
                 'r2_cutoff': col, 
                 'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
                 'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
-                'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col]*-1)[0],
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col])[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col]  )})
+    #next df 
+    af_df,et  = load_dataset_single('mono', 'af')
+    test_df =  af_df#[af_df.order_padj_sets == 'train']
+    avgs_test = test_df.groupby(['ppi']).mean()
+
+    for col in [ 'mean_plddt',
+        'mean_pae_interaction_AB', 'mean_pae_interaction_BA',
+        'mean_pae_interaction', 'mean_pae_intra_chain_A',
+        'mean_pae_intra_chain_B', 'mean_pae_intra_chain', 'mean_pae',
+        'pTMscore']:
+            if 'pae' in col:
+                 rows.append({
+                'dataset': 'mono',
+                'mode': 'all',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col] * -1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
-
-    #next df 
+            else:
+                rows.append({
+                    'dataset': 'mono',
+                    'mode': 'all',
+                    'r2_cutoff': col, 
+                    'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                    'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                    'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col]  ),
+                    'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
+    
     af_df,et  = load_dataset_single('mono', 'af')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
@@ -265,31 +340,326 @@ def get_af_metrics_baselines():
         'mean_pae_interaction', 'mean_pae_intra_chain_A',
         'mean_pae_intra_chain_B', 'mean_pae_intra_chain', 'mean_pae',
         'pTMscore']:
-            rows.append({
+            if 'pae' in col:
+                 rows.append({
                 'dataset': 'mono',
+                'mode': 'test',
                 'r2_cutoff': col, 
-                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col] * -1)[0] ** 2,
                 'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
-                'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col]*-1)[0],
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
+            else:
+                rows.append({
+                    'dataset': 'mono',
+                    'mode': 'test',
+                    'r2_cutoff': col, 
+                    'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                    'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                    'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col]  ),
+                    'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
 
+
+    af_df,et  = load_dataset_single('v3', 'af')
+    test_df =  af_df#[af_df.order_padj_sets == 'train']
+    avgs_test = test_df.groupby(['ppi']).mean()
+
+    for col in ['mean_plddt', 'pae', 'ptm', 'iptm',
+        'max_pae']:
+            if 'pae' in col:
+                 rows.append({
+                'dataset': 'v3',
+                'mode': 'all',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col] * - 1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
+            else:
+                rows.append({
+                    'dataset': 'v3',
+                    'mode': 'all',
+                    'r2_cutoff': col, 
+                    'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                    'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                    'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col]  ),
+                    'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
+            
     af_df,et  = load_dataset_single('v3', 'af')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
 
     for col in ['mean_plddt', 'pae', 'ptm', 'iptm',
         'max_pae']:
-            rows.append({
+            if 'pae' in col:
+                 rows.append({
                 'dataset': 'v3',
+                'mode': 'test',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col] * - 1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col] * -1)[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
+            else:
+                rows.append({
+                    'dataset': 'v3',
+                    'mode': 'test',
+                    'r2_cutoff': col, 
+                    'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                    'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                    #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col])[0],
+                    'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col]  ),
+                    'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
+
+    
+    df_barplot = pd.DataFrame(rows)
+    return df_barplot
+
+
+def get_af_metrics_baselines_train_test_model_1():
+    #AF preds 
+
+    rows = []
+
+    af_df,et  = load_dataset_single('v2', 'af')
+    test_df =  af_df[af_df.model == 1]
+    avgs_test = test_df.groupby(['ppi']).mean()   
+    for col in ['mean_plddt', 'ptm', 'iptm']:
+            rows.append({
+                'dataset': 'v2',
+                'mode': 'all',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                'test_spearman': np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col]*-1)[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
+            
+    af_df,et  = load_dataset_single('v2', 'af')
+    af_df =  af_df[af_df.model == 1]
+    test_df =  af_df[af_df.order_padj_sets == 'test']
+    avgs_test = test_df.groupby(['ppi']).mean()   
+    for col in ['mean_plddt', 'ptm', 'iptm']:
+            rows.append({
+                'dataset': 'v2',
+                'mode': 'test',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                'test_spearman': np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col]*-1)[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col])})
+
+    #next df 
+    af_df,et  = load_dataset_single('v1_512', 'af')
+    af_df =  af_df[af_df.model == 1]
+    test_df =  af_df#[af_df.order_padj_sets == 'train']
+    avgs_test = test_df.groupby(['ppi']).mean()
+
+    for col in ['mean_plddt', 'ptm', 'iptm']:
+            rows.append({
+                'dataset': 'v1_512',
+                'mode': 'all',
                 'r2_cutoff': col, 
                 'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
                 'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
-                'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col]*-1)[0],
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col])[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col]  )})
+            
+    
+    af_df,et  = load_dataset_single('v1_512', 'af')
+    af_df =  af_df[af_df.model == 1]
+    test_df =  af_df[af_df.order_padj_sets == 'test']
+    avgs_test = test_df.groupby(['ppi']).mean()
+
+    for col in ['mean_plddt', 'ptm', 'iptm']:
+            rows.append({
+                'dataset': 'v1_512',
+                'mode': 'test',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col])[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col]  )})
+    #next df 
+    af_df,et  = load_dataset_single('mono', 'af')
+    af_df =  af_df[af_df.model == 1]
+    test_df =  af_df#[af_df.order_padj_sets == 'train']
+    avgs_test = test_df.groupby(['ppi']).mean()
+
+    for col in [ 'mean_plddt',
+        'mean_pae_interaction_AB', 'mean_pae_interaction_BA',
+        'mean_pae_interaction', 'mean_pae_intra_chain_A',
+        'mean_pae_intra_chain_B', 'mean_pae_intra_chain', 'mean_pae',
+        'pTMscore']:
+            if 'pae' in col:
+                rows.append({
+                'dataset': 'mono',
+                'mode': 'all',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col] * -1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
+            else:
+                rows.append({
+                    'dataset': 'mono',
+                    'mode': 'all',
+                    'r2_cutoff': col, 
+                    'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                    'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                    'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col]  ),
+                    'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
+    
+    af_df,et  = load_dataset_single('mono', 'af')
+    af_df =  af_df[af_df.model == 1]
+    test_df =  af_df[af_df.order_padj_sets == 'test']
+    avgs_test = test_df.groupby(['ppi']).mean()
 
+    for col in [ 'mean_plddt',
+        'mean_pae_interaction_AB', 'mean_pae_interaction_BA',
+        'mean_pae_interaction', 'mean_pae_intra_chain_A',
+        'mean_pae_intra_chain_B', 'mean_pae_intra_chain', 'mean_pae',
+        'pTMscore']:
+            if 'pae' in col:
+                rows.append({
+                'dataset': 'mono',
+                'mode': 'test',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col] * -1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
+            else:
+                rows.append({
+                    'dataset': 'mono',
+                    'mode': 'test',
+                    'r2_cutoff': col, 
+                    'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                    'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                    'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col]  ),
+                    'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
+
+
+    af_df,et  = load_dataset_single('v3', 'af')
+    af_df =  af_df[af_df.model == 1]
+    test_df =  af_df#[af_df.order_padj_sets == 'train']
+    avgs_test = test_df.groupby(['ppi']).mean()
+
+    for col in ['mean_plddt', 'pae', 'ptm', 'iptm',
+        'max_pae']:
+            if 'pae' in col:
+                rows.append({
+                'dataset': 'v3',
+                'mode': 'all',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col] * - 1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
+            else:
+                rows.append({
+                    'dataset': 'v3',
+                    'mode': 'all',
+                    'r2_cutoff': col, 
+                    'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                    'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                    'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col]  ),
+                    'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
+            
+    af_df,et  = load_dataset_single('v3', 'af')
+    af_df =  af_df[af_df.model == 1]
+    test_df =  af_df[af_df.order_padj_sets == 'test']
+    avgs_test = test_df.groupby(['ppi']).mean()
+
+    for col in ['mean_plddt', 'pae', 'ptm', 'iptm',
+        'max_pae']:
+            if 'pae' in col:
+                rows.append({
+                'dataset': 'v3',
+                'mode': 'test',
+                'r2_cutoff': col, 
+                'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col] * - 1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col] * -1)[0],
+                'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
+                'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
+            else:
+                rows.append({
+                    'dataset': 'v3',
+                    'mode': 'test',
+                    'r2_cutoff': col, 
+                    'test_r2':  pearsonr(avgs_test['lfc_all'], avgs_test[col])[0] ** 2,
+                    'test_spearman':  np.abs(spearmanr(avgs_test['lfc_all'], avgs_test[col])[0]),
+                    #'test_mccf1': get_mcc_f1_from_msrmts(avgs_test['binned'] ==1 , avgs_test[col])[0],
+                    'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col]  ),
+                    'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] )})
+
+    
     df_barplot = pd.DataFrame(rows)
-    df_barplot = df_barplot.sort_values(by = ['test_r2','test_avgpr'], ascending=False).drop_duplicates( subset = 'dataset', keep = 'first')
+
     return df_barplot
 
+def get_all_baseline_sets_and_predictions():
+    bicpa_scores = load('PNIC_bcipa.bin')
+    icipa_core_vert_scores = load('PNIC_icipa_core_vert.bin')
+    icipa_nter_core_scores = load('PNIC_icipa_nter_core.bin')
+    qcipa_scores = load('PNIC_qcipa.bin')
+
+    d=load_score_file("PNIC-complete.out")
+    ids = sorted(d.ids(), key=natural_key)
+    mat = symdict_to_array(d, ids)
+
+    mp3_seq_values = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_flat.csv')
+    mp3_seq_values = mp3_seq_values.rename(columns = {'Unnamed: 0': 'PPI'})
+
+    mp3_seq_values['P1'] = mp3_seq_values.PPI.apply(lambda x: x.split(':')[1])
+    mp3_seq_values['P2'] = mp3_seq_values.PPI.apply(lambda x: x.split(':')[3])
+
+    test_train_split = ['test', 'train'] * int((0.1 * mp3_seq_values.shape[0]))
+    test_train_split = test_train_split + ['train'] * int(mp3_seq_values.shape[0] - len(test_train_split))
+    mp3_seq_values = mp3_seq_values.sort_values('ashr_padj_HIS_TRP')
+    mp3_seq_values['order_padj_sets'] = test_train_split
+    mp3_seq_values['binned'] = mp3_seq_values.ashr_log2FoldChange_HIS_TRP.apply(lambda x: label_LFC_bins(x))
+
+    #make df of popatov value
+    df_rows = []
+    for i in range(0,12):
+        for j in range(0,12):
+            df_rows.append({
+                'P1': 'Jerala_P' + str(i + 1),
+                'P2': 'Jerala_P' + str(j + 1),
+                'popatov': mat[i][j],
+                'bicpa_scores':bicpa_scores[i][j],
+                'icipa_core_vert_scores':icipa_core_vert_scores[i][j],
+                'icipa_nter_core_scores':icipa_nter_core_scores[i][j],
+                'qcipa_scores':qcipa_scores[i][j],
+            })
+    pop_df = pd.DataFrame(df_rows)
+
+    pop_merge =pop_df.merge(mp3_seq_values, how = 'left', on = ['P1', 'P2'] )
+    to_correl = pop_merge[['P1', 'P2', 'popatov', 'ashr_log2FoldChange_HIS_TRP', 'bicpa_scores', 'icipa_core_vert_scores', 'icipa_nter_core_scores', 'order_padj_sets', 'binned']].dropna()
+    #to_correl = to_correl[to_correl.order_padj_sets == 'test']
+
+    #average each test point like in other evaluations 
+
+    #using thse for plotting purposes later on to order bars at the end of the plots
+    z_names = {'popatov':'z1', 'bicpa_scores':'z2', 'icipa_core_vert_scores':'z3', 'icipa_nter_core_scores':'z4' }
+
+    rows = []
+    for col in ['popatov', 'bicpa_scores', 'icipa_core_vert_scores', 'icipa_nter_core_scores' ]:
+            rows.append({
+                'dataset': z_names[col] + '_all', 
+                'mode': 'all',
+                'test_r2':  pearsonr(to_correl['ashr_log2FoldChange_HIS_TRP'], to_correl[col] * -1)[0] ** 2,
+                'test_spearman':  np.abs(spearmanr(to_correl['ashr_log2FoldChange_HIS_TRP'], to_correl[col]* -1)[0]),
+                ##'test_mccf1': get_mcc_f1_from_msrmts(to_correl['binned'] ==1 , to_correl[col]*-1)[0],
+                'test_AUCROC':roc_auc_score(to_correl['binned'], to_correl['popatov'] *-1 ),
+                'test_avgpr':average_precision_score(to_correl['binned'], to_correl[col] *-1 )})
+            
+    df_barplot = pd.DataFrame(rows)
+
+    return df_barplot, to_correl

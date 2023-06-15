@@ -9,7 +9,7 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-def run_one_library(drive_location, destination_folder, stub_name, trp_table, his_table, bad_dbds):
+def run_one_library(drive_location, destination_folder, stub_name, trp_table, his_table, bad_dbds, bad_ads = []):
     """
     Process one replicate with autotune and prepare psuedoreplicate and non-psuedoreplicate read count csv files for DESeq2 input
     :param drive_location: Location folder of input trp and his read count csv files
@@ -32,7 +32,7 @@ def run_one_library(drive_location, destination_folder, stub_name, trp_table, hi
     flat_df = flatten(df_list_full, binders)
 
     # fill autoactivators identified using autotune
-    flat_again, deseq_homo, _ = autofill_bad_dbds(flat_df.copy(), binders, bad_dbds)
+    flat_again, deseq_homo, _ = autofill_both(flat_df.copy(), binders, bad_dbds, bad_ads)
 
     # removing autoactivating interactions from the dataframe
     flat_df = flat_df[(flat_df.trp1 != 0) | (flat_df.his1 != 0)]
@@ -61,6 +61,38 @@ def run_one_library(drive_location, destination_folder, stub_name, trp_table, hi
 check_destination_folder("./processed_replicates/")  # check the destination folder exists
 library_inputs_list = []
 
+library_inputs_list.append(("../data/final_mp3seq_method/large_rep_nochanges/",
+                            "./processed_replicates/",
+                            'new_1c_fixed',
+                            'TRP_table_Trp1.csv',
+                            'HIS_table_His1.csv',
+                            ['1005_mALb8x12_fdrtc_B', '1007_mALb8x12j_fdrtc_B', '1008_mALb8x12j_rprtc_B', 'AN4', 'Bcl-2', 'Mcl1[151-321]', 'N1', 'XCDP07', 'alphaBCL2', 'alphaBCLB', 'alphaMCL1'] ))
+
+library_inputs_list.append(("../data/final_mp3seq_method/large_rep_nochanges/",
+                            "./processed_replicates/",
+                            'new_1_smaller',
+                            'TRP_table_Trp1_dropJunk.csv',
+                            'HIS_table_His1_dropJunk.csv',
+                            ['1004_mALb8x2_rprtc_B', '1005_mALb8x12_fdrtc_B', '1007_mALb8x12j_fdrtc_B', '1008_mALb8x12j_rprtc_B', 'AN4', 'IL14_A', 'MCL1', 'N1'] ))
+
+
+
+library_inputs_list.append(("../data/final_mp3seq_method/large_rep_nochanges/",
+                            "./processed_replicates/",
+                            'new_2c_fixed',
+                            'TRP_table_Trp2.csv',
+                            'HIS_table_His2.csv',['1005_mALb8x12_fdrtc_B', '1007_mALb8x12j_fdrtc_B', 'Mcl1[151-321]', 'N1', 'alphaBCLB']
+                           ))
+
+library_inputs_list.append(("../data/final_mp3seq_method/large_rep_nochanges/",
+                            "./processed_replicates/",
+                            'new_2_smaller',
+                            'TRP_table_Trp2_dropJunk.csv',
+                            'HIS_table_His2_dropJunk.csv',
+                            ['1004_mALb8x2_rprtc_B', '1005_mALb8x12_fdrtc_B', '1007_mALb8x12j_fdrtc_B', '1008_mALb8x12j_rprtc_B', 'AN4', 'N1'] ))
+
+
+"""
 # Jerala P1-P12 replicates
 library_inputs_list.append(("../data/final_mp3seq_method/l61/",
                             "./processed_replicates/",
@@ -180,6 +212,12 @@ library_inputs_list.append(("../data/older_mp3seq_method/l48/",
                             'L48_TRP_table.csv',
                             'L48_HIS_table.csv',
                             []))
+"""
+def main():
+    with Pool() as pool:
+        pool.starmap(run_one_library, library_inputs_list)
 
-with Pool() as pool:
-    pool.starmap(run_one_library, library_inputs_list)
+
+
+if __name__ == "__main__":
+    main()

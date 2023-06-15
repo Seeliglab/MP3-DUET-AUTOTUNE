@@ -1,5 +1,7 @@
 #ALyssa La Fleur
 #Correlation with kd values for the truncated coil pair
+#6/14/2023: updated to use all three replicates 
+
 
 import pandas as pd
 import numpy as np
@@ -19,7 +21,7 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-woolfsons = ['AN4', 'AN35', 'AN3', 'BN4', 'BN35', 'BN3']
+woolfsons = ['AN4', 'BN4', 'AN35', 'BN35', 'AN3', 'BN3']
 
 #sets of interactions
 woolfson_woolfson_ppis = []
@@ -37,7 +39,7 @@ just_kds['kd_nm'] = just_kds['kd']/(10**-9)
 just_kds['kd_error_nm'] = just_kds['kd_error']/(10**-9)
 
 #load values for comparison 
-deseq_homo_af_batch = pd.read_csv('../processing_pipeline/processed_replicates/deseq_l68_psuedoreplicate_autotune.csv')
+deseq_homo_af_batch = pd.read_csv('../processing_pipeline/merged_replicates/deseq_plaper_3_smaller_psuedoreplicate_autotune.csv')
 deseq_homo_af_batch = deseq_homo_af_batch.rename(columns = {'Unnamed: 0': 'PPI'})
 
 merge_kds_d = deseq_homo_af_batch.merge(just_kds, on = 'PPI')
@@ -76,21 +78,15 @@ print(stats.spearmanr(kds_no_nans['ashr_log2FoldChange_HIS_TRP'],
 
 
 #making heatmap for Figure 1
-flat_df = pd.read_csv('../processing_pipeline/processed_replicates/l68_flat.csv')
-flat_df['DBD'] = flat_df.PPI.apply(lambda x: x.split(':')[1])
-flat_df['AD'] = flat_df.PPI.apply(lambda x: x.split(':')[3])
+flat_df = pd.read_csv('../processing_pipeline/merged_replicates/deseq_plaper_3_smaller_flat_autotune.csv')
+flat_df = flat_df.rename(columns = {'Unnamed: 0': 'PPI'})
 
-vals_counts = ['trp1', 'his1']
-for vc in vals_counts:
-    flat_df.loc[flat_df[vc]  == 0, vc] = None
-
-flat_df['lin_enrich'] = calc_lin_enrichment(flat_df['trp1'], flat_df['his1'])
-flat_df['log2_enrich'] = calc_log2_enrichment(flat_df['lin_enrich'])
-flat_df.loc[(flat_df.trp1.isna()) & (flat_df.his1.isna()), 'lin_enrich'] = None
-flat_df.loc[(flat_df.trp1.isna()) & (flat_df.his1.isna()), 'log2_enrich'] = None
+#fill in missing AN4:AN4 homodimer in reps 1 and 2 with l68 value 
+flat_df = pd.read_csv('../processing_pipeline/merged_replicates/deseq_plaper_3_smaller_flat_autotune.csv')
+flat_df = flat_df.rename(columns = {'Unnamed: 0': 'PPI'})
 
 woolfsons = ['AN4', 'AN35',  'AN3', 'BN4','BN35', 'BN3' ]
 
 #save heatmap 
-make_square_heatmap(make_specific_order(woolfsons, flat_df, 'log2_enrich'),
-                                           float('-inf'), woolfsons, 'bone_r', False, 2.5, 2, 'woolfson_heatmap.svg', [-5,5])
+make_square_heatmap(make_specific_order(woolfsons, flat_df, 'ashr_log2FoldChange_HIS_TRP'),
+                                           float('-inf'), woolfsons, 'bone_r', False, 2.5, 2, 'woolfson_heatmap.svg', )

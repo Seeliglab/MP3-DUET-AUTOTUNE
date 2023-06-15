@@ -15,6 +15,103 @@ new_rc_params = {'text.usetex': False,
 }
 mpl.rcParams.update(new_rc_params)
 
+#dictionary for naming all features consistently between images for the supplement
+naming_dict = {'plddt': 0,
+ 'mean_plddt': 1,
+ 'pae': 2,
+ 'ptm': 3,
+ 'iptm': 4,
+ 'max_pae': 5,
+ 'mean_pae_interaction_AB': 6,
+ 'mean_pae_interaction_BA': 7,
+ 'mean_pae_interaction': 8,
+ 'mean_pae_intra_chain_A': 9,
+ 'mean_pae_intra_chain_B': 10,
+ 'mean_pae_intra_chain': 11,
+ 'mean_pae': 12,
+ 'pTMscore': 13,
+ 'IA_complex_normalized': 14,
+ 'IA_dG_cross': 15,
+ 'IA_dG_cross/dSASAx100': 16,
+ 'IA_dG_separated': 17,
+ 'IA_dG_separated/dSASAx100': 18,
+ 'IA_dSASA_hphobic': 19,
+ 'IA_dSASA_int': 20,
+ 'IA_dSASA_polar': 21,
+ 'IA_delta_unsatHbonds': 22,
+ 'IA_hbond_E_fraction': 23,
+ 'IA_hbonds_int': 24,
+ 'IA_nres_int': 25,
+ 'IA_packstat': 26,
+ 'IA_per_residue_energy_int': 27,
+ 'IA_sc_value': 28,
+ 'IA_side1_normalized': 29,
+ 'IA_side1_score': 30,
+ 'IA_side2_normalized': 31,
+ 'IA_side2_score': 32,
+ 'cart_bonded': 33,
+ 'cms': 34,
+ 'cms_apolar': 35,
+ 'cms_sq5': 36,
+ 'complex_normalized': 37,
+ 'dG_cross': 38,
+ 'dG_cross/dSASAx100': 39,
+ 'dG_separated': 40,
+ 'dG_separated/dSASAx100': 41,
+ 'dSASA_hphobic': 42,
+ 'dSASA_int': 43,
+ 'dSASA_polar': 44,
+ 'ddg': 45,
+ 'delta_unsatHbonds': 46,
+ 'exposed_hydrop': 47,
+ 'fa_atr': 48,
+ 'fa_dun_dev': 49,
+ 'fa_dun_rot': 50,
+ 'fa_dun_semi': 51,
+ 'fa_elec': 52,
+ 'fa_intra_atr_xover4': 53,
+ 'fa_intra_elec': 54,
+ 'fa_intra_rep_xover4': 55,
+ 'fa_intra_sol_xover4': 56,
+ 'fa_rep': 57,
+ 'fa_sol': 58,
+ 'hbond_E_fraction': 59,
+ 'hbond_bb_sc': 60,
+ 'hbond_sc': 61,
+ 'hbond_sr_bb': 62,
+ 'hbonds_int': 63,
+ 'hxl_tors': 64,
+ 'lk_ball': 65,
+ 'lk_ball_bridge': 66,
+ 'lk_ball_bridge_uncpl': 67,
+ 'lk_ball_iso': 68,
+ 'nres_int': 69,
+ 'num_core_polar': 70,
+ 'omega': 71,
+ 'p_aa_pp': 72,
+ 'packstat': 73,
+ 'per_residue_energy_int': 74,
+ 'rama_prepro': 75,
+ 'ref': 76,
+ 'sc2': 77,
+ 'sc2_int_area': 78,
+ 'sc2_median_dist': 79,
+ 'sc_value': 80,
+ 'score_per_res': 81,
+ 'side1_normalized': 82,
+ 'side1_score': 83,
+ 'side2_normalized': 84,
+ 'side2_score': 85,
+ 'total_score': 86,
+ 'fraction_int_all': 87,
+ 'fraction_all': 88,
+ 'sbuns': 89,
+ 'rank': 90,
+ 'chain_a_clash_num': 91,
+ 'chain_b_clash_num': 92}
+
+print (len(naming_dict))
+
 aj_important = open('./af_prediction_values_rosetta_energy_terms/most_important_features.txt', 'r')
 aj_important = [x.strip() for x in aj_important.readlines()]
 label_cols = ['id1', 'id2', 'model', 'type', 'msa_depth', 'new_ppi', 'ppi', 'on_target']
@@ -101,10 +198,12 @@ def strip_clashing(x, chain):
     else:
         return 0
 
-def get_all_tenths_max_interclust(v2_preds, label_cols, aj_important, save_name):
+def get_all_tenths_max_interclust(v2_preds, label_cols, aj_important, save_name, dendro_w, dendro_h):
     v2_order = v2_preds.drop(columns=label_cols)
+    if 'Unnamed: 0' in v2_order.columns:
+        v2_order = v2_order.drop(columns=['Unnamed: 0'])
     cols = list(v2_order.columns)
-    fig, ax1 = plt.subplots(figsize=(20, 10))
+    fig, ax1 = plt.subplots()
 
     c_mat = v2_order.corr('spearman').fillna(0).to_numpy()
     #c_mat = np.nan_to_num(c_mat)
@@ -119,19 +218,19 @@ def get_all_tenths_max_interclust(v2_preds, label_cols, aj_important, save_name)
     dist_linkage = hierarchy.ward(squareform(distance_matrix))
 
     dendro = hierarchy.dendrogram(
-        dist_linkage, labels=cols, ax=ax1, leaf_rotation=90, get_leaves = True, leaf_font_size=4
+        dist_linkage, labels=[naming_dict[c] for c in cols], ax=ax1, leaf_rotation=90, get_leaves = True, leaf_font_size=4
     )
     #dendro_idx = np.arange(0, len(dendro["ivl"]))
     y_max = plt.ylim()[1]
     print (y_max)
-    
+    cols_lines = ['#ffffffcc', '#ff7f0eff', '#2ca02cff', '#d62728ff', '#9467bdff', '#8c564bff', '#e377c2ff', '#7f7f7fff', '#bcbd22ff']
     dfs = []
     divs = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
     for i in range(0, len(divs)):
         div = divs[i]
         print ()
         cluster_ids = hierarchy.fcluster(dist_linkage, y_max*div, criterion="distance")
-        plt.axhline( y_max*div, ls = '--')
+        plt.axhline( y_max*div, ls = '--', color = cols_lines[i])
         df_cluster = pd.DataFrame({'feature': cols, 'cluster': cluster_ids})
         ranks_2 = get_selection_rank(v2_preds, label_cols, aj_important)
         ranks_2 = ranks_2.merge(df_cluster, on = 'feature')
@@ -142,7 +241,8 @@ def get_all_tenths_max_interclust(v2_preds, label_cols, aj_important, save_name)
         dfs.append((ranks_2, subset))
         if ranks_2.drop_duplicates('cluster', keep = 'first').shape[0] == 2:
             break
-    fig.set_size_inches(4,0.75)
+    fig.set_size_inches(dendro_h,dendro_w)
+    plt.tight_layout()
     plt.savefig(save_name+'dendro.svg')
     plt.close()
     print (dendro['ivl'])
@@ -205,9 +305,9 @@ v2_preds = remove_constant_cols(v2_preds, label_cols)
 v1_preds_msa_512 = remove_constant_cols(v1_preds_msa_512, label_cols)
 v3_preds = remove_constant_cols(v3_preds, label_cols)
 
-dfs = get_all_tenths_max_interclust(v2_preds, label_cols, aj_important, './datasets/v2_correl_reduced_r_')
-dfs = get_all_tenths_max_interclust(v1_preds_msa_512, label_cols, aj_important, './datasets/v1_512_correl_reduced_r_')
-dfs = get_all_tenths_max_interclust(v3_preds, label_cols, aj_important, './datasets/v3_correl_reduced_r_')
+dfs = get_all_tenths_max_interclust(v1_preds_msa_512, label_cols, aj_important, './datasets/v1_512_correl_reduced_r_', dendro_h=5.25, dendro_w=0.75)
+dfs = get_all_tenths_max_interclust(v2_preds, label_cols, aj_important, './datasets/v2_correl_reduced_r_', dendro_h=5.25, dendro_w = 0.75)
+dfs = get_all_tenths_max_interclust(v3_preds, label_cols, aj_important, './datasets/v3_correl_reduced_r_', dendro_h=5.25, dendro_w=0.75)
 
 #monomer version of AF 
 all_old = pd.read_csv('./af_prediction_values_rosetta_energy_terms/AF2_rosetta_merged.csv')
@@ -226,7 +326,7 @@ monomer_ptm['on_target'] = monomer_ptm.ppi.isin(on_target)
 monomer_ptm['new_ppi'] = monomer_ptm.apply(lambda row: row.ppi + '_' + str(row.model), axis  =1 )
 monomer_ptm = monomer_ptm.drop_duplicates('new_ppi', keep = 'first')
 mono_preds = remove_constant_cols(monomer_ptm, label_cols)
-df = get_all_tenths_max_interclust(mono_preds, label_cols, aj_important,'./datasets/mono_correl_reduced_r_')
+df = get_all_tenths_max_interclust(mono_preds, label_cols, aj_important,'./datasets/mono_correl_reduced_r_', dendro_h=5.25, dendro_w=0.75)
 
 #make af output only version of features 
 subset_af = ['plddt', 'mean_plddt', 'pae', 'ptm', 'iptm', 'max_pae']

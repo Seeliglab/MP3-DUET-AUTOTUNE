@@ -26,8 +26,46 @@ homo_bcl = homo_bcl.rename(columns = {'Unnamed: 0': 'PPI'})
 both = homo_bcl.merge(bcl_values, on = 'PPI')
 kd_exists =  both[both.capped_out == False]
 
+
 on_targets = "#ffcc00ff"
 off_targets = "#782167ff"
+f, ax = plt.subplots()
+subset = kd_exists
+subset['count'] = subset['count']/(10**-9)
+subset['count_error'] = subset['count_error_bars']/(10**-9)
+print (subset.type.value_counts())
+plt.errorbar(y = subset[subset.type]['count'],
+             x = subset[subset.type]['ashr_log2FoldChange_HIS_TRP'], 
+             xerr= subset[subset.type]['ashr_lfcSE_HIS_TRP'], 
+             yerr = subset[subset.type]['count_error'],
+             fmt="o", elinewidth = 2, alpha = 0.75, color = on_targets, capsize = 3, markersize = 5, ecolor = 'gray')
+plt.errorbar(y = subset[~subset.type]['count'],
+             x = subset[~subset.type]['ashr_log2FoldChange_HIS_TRP'], 
+             xerr=  subset[~subset.type]['ashr_lfcSE_HIS_TRP'], 
+             yerr =  subset[~subset.type]['count_error'],
+             fmt="o", elinewidth = 2, markersize = 5, alpha = 0.9, color = off_targets,capsize = 3, ecolor = 'gray')
+ax.set_yscale('log')
+locmaj = matplotlib.ticker.LogLocator(base=10.0, subs=(1.0, ), numticks=100)
+ax.yaxis.set_major_locator(locmaj)
+
+locmin = matplotlib.ticker.LogLocator(base=10.0, subs=np.arange(-1, 6) * .1,
+                                      numticks=100)
+ax.yaxis.set_minor_locator(locmin)
+ax.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+
+plt.tight_layout()
+f.set_size_inches(1.5,2)
+plt.savefig('./figures/' + 'bcl_new.svg', dpi = 300)
+plt.show()
+
+print(get_correls(subset, 'ashr_log2FoldChange_HIS_TRP', 'count', log=True))
+print(get_correls(subset, 'ashr_log2FoldChange_HIS_TRP', 'count', log=False))
+
+
+
+
+
+
 f, ax = plt.subplots(figsize=(3,3))
 
 plt.errorbar(x = kd_exists[kd_exists.type]['ashr_log2FoldChange_HIS_TRP'],
@@ -42,7 +80,7 @@ plt.errorbar(x = kd_exists[~kd_exists.type]['ashr_log2FoldChange_HIS_TRP'],
                 fmt="o", elinewidth = 0.75, alpha = 0.75, color = off_targets, capsize = 1, markersize = 4, ecolor = 'gray')
 
 plt.yscale('log')
-f.set_size_inches(2.25,2.25)
+f.set_size_inches(1.5,2)
 plt.savefig('./figures/' + 'bcl_correl_kds.svg', dpi = 300)
 plt.show()
 both['count_nm'] = both['count']/(10**-9)
@@ -64,7 +102,7 @@ plt.errorbar(x = kd_exists[~kd_exists.type]['ashr_log2FoldChange_HIS_TRP'],
                 fmt="o", elinewidth = 0.75, alpha = 0.75, color = off_targets, capsize = 1, markersize = 4, ecolor = 'gray')
 
 plt.yscale('log')
-f.set_size_inches(2.25,2.25)
+f.set_size_inches(1.5,2)
 plt.savefig('./figures/' + 'bcl_correl_batched_kds_exist.svg', dpi = 300)
 plt.show()
 
@@ -85,7 +123,7 @@ plt.errorbar(x = kd_exists[~kd_exists.type]['ashr_log2FoldChange_HIS_TRP'],
                 fmt="o", elinewidth = 0.75, alpha = 0.75, color = off_targets, capsize = 1, markersize = 4, ecolor = 'gray')
 
 plt.yscale('log')
-f.set_size_inches(2.25,2.25)
+f.set_size_inches(1.5,2)
 plt.savefig('./figures/' + 'bcl_correl_batched_all.svg', dpi = 300)
 plt.show()
 both['count_nm'] = both['count']/(10**-9)
@@ -106,7 +144,7 @@ plt.errorbar(x = kd_exists[~kd_exists.type]['ashr_log2FoldChange_HIS_TRP'],
                 fmt="o", elinewidth = 0.75, alpha = 0.75, color = off_targets, capsize = 1, markersize = 4, ecolor = 'gray')
 
 plt.yscale('log')
-f.set_size_inches(2.25,2.25)
+f.set_size_inches(1.5,2)
 plt.savefig('./figures/' + 'bcl_correl_batched_kds_exist.svg', dpi = 300)
 plt.show()
 
@@ -127,7 +165,7 @@ plt.errorbar(x = kd_exists[~kd_exists.type]['ashr_log2FoldChange_HIS_TRP'],
                 fmt="o", elinewidth = 0.75, alpha = 0.75, color = off_targets, capsize = 1, markersize = 4, ecolor = 'gray')
 
 plt.yscale('log')
-f.set_size_inches(2.25,2.25)
+f.set_size_inches(1.5,2)
 plt.savefig('./figures/' + 'bcl_correl_batched_all.svg', dpi = 300)
 plt.show()
 both['count_nm'] = both['count']/(10**-9)
@@ -143,7 +181,7 @@ x = make_specific_order_lower_triangle(order_binders, both, 'ashr_log2FoldChange
 make_lower_heatmap(x, order_binders, 'bone_r',size_1 = 4, size_2 = 4, saveName = 'kd_versus_bcl_heatmap.svg')
 
 #boxplots & p-value analysis 
-h = 2.25
+h = 1.25
 w = 1.1
 sns.boxplot(data = both, y = 'pairwise_val', x = 'capped_out', palette = {True: '#d2eedeff', False: '#d7eef4ff'})#, kind = 'box')
 plt.ylabel('')

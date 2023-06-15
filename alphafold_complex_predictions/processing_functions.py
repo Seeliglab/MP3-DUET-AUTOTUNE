@@ -198,8 +198,45 @@ def make_square_heatmap(subs_mat, cutoff, pro_names, cmap, show_names = False, s
 
     plt.tight_layout()
     if saveName:
-        plt.savefig('./figures/' + saveName, dpi = 300)
+        plt.savefig(saveName, dpi = 300)
     plt.show()
+
+
+
+def make_specific_order_lower(better_order_binders, df, col, get_diag = True, limit_lower = float('-inf')):
+    square_df = np.empty((len(better_order_binders), len(better_order_binders)))
+    square_df[:] = np.nan
+    for i in range(0, len(better_order_binders)):
+        for j in range(0, i+1):# in bettter_order_binders:
+            if get_diag:
+                ppi_id = [better_order_binders[i], better_order_binders[j]]
+                ppi_id.sort()
+                if ':'.join(ppi_id) in df.PPI.to_list():
+                    if limit_lower < df[df.PPI == ':'.join(ppi_id)][col].to_numpy():
+                    #print (ppi_id, df[df.PPI == ':'.join(ppi_id)][col].to_numpy())
+                        square_df[i,j] = df[df.PPI == ':'.join(ppi_id)][col].to_numpy()
+            elif i!= j:
+                ppi_id = [better_order_binders[i], better_order_binders[j]]
+                ppi_id.sort()
+                if ':'.join(ppi_id) in df.PPI.to_list():
+                    if limit_lower < df[df.PPI == ':'.join(ppi_id)][col].to_numpy():
+                    #print (ppi_id, df[df.PPI == ':'.join(ppi_id)][col].to_numpy())
+                        square_df[i,j] = df[df.PPI == ':'.join(ppi_id)][col].to_numpy()
+    return square_df
+
+def make_specific_order(better_order_binders, df, col):
+    square_df = np.empty((len(better_order_binders), len(better_order_binders)))
+    square_df[:] = np.nan
+    for i in range(0, len(better_order_binders)):
+        for j in range(0, len(better_order_binders)):# in bettter_order_binders:
+            b = better_order_binders[i]
+            b2 = better_order_binders[j]
+            ppi_id = 'DBD:' + b + ':AD:' + b2#[b, b2]
+            #ppi_id.sort()
+            #print (ppi_id, df[df.PPI == ppi_id])
+            if df[df.PPI == ppi_id].shape[0] != 0:
+                square_df[i,j] = df[df.PPI == ppi_id][col].to_numpy()
+    return square_df
 
 def make_specific_order(better_order_binders, df, col):
     """
@@ -290,7 +327,6 @@ def get_correls(df, colx, coly, log = True):
                              heatmap_tm_no_nans[coly])[0]
 
         return n_orig, n, round(pearson_r_nl,2), round(spr_nl,2)
-
 
 
 
@@ -405,24 +441,3 @@ def make_double_heatmap(subs_mat1, subs_mat2, pro_names, cmap1, cmap2, show_name
         plt.savefig('./figures/' + saveName, dpi = 300)
     if show:
         plt.show()
-
-def make_specific_order_lower_triangle(better_order_binders, df, col, get_diag = True, limit_lower = float('-inf')):
-    square_df = np.empty((len(better_order_binders), len(better_order_binders)))
-    square_df[:] = np.nan
-    for i in range(0, len(better_order_binders)):
-        for j in range(0, i+1):# in bettter_order_binders:
-            if get_diag:
-                ppi_id = [better_order_binders[i], better_order_binders[j]]
-                ppi_id.sort()
-                if ':'.join(ppi_id) in df.PPI.to_list():
-                    if limit_lower < df[df.PPI == ':'.join(ppi_id)][col].to_numpy():
-                    #print (ppi_id, df[df.PPI == ':'.join(ppi_id)][col].to_numpy())
-                        square_df[i,j] = df[df.PPI == ':'.join(ppi_id)][col].to_numpy()
-            elif i!= j:
-                ppi_id = [better_order_binders[i], better_order_binders[j]]
-                ppi_id.sort()
-                if ':'.join(ppi_id) in df.PPI.to_list():
-                    if limit_lower < df[df.PPI == ':'.join(ppi_id)][col].to_numpy():
-                    #print (ppi_id, df[df.PPI == ':'.join(ppi_id)][col].to_numpy())
-                        square_df[i,j] = df[df.PPI == ':'.join(ppi_id)][col].to_numpy()
-    return square_df

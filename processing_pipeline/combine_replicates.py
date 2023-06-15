@@ -49,6 +49,61 @@ def merge_frames(list_replicate_names, save_name, mode='flat', join='inner', sta
 # check merged_replicates folder exists
 check_destination_folder('./merged_replicates/')
 
+#new replicates (jerala)
+merge_frames(['l61_2mM', 'l62_2mM', 'l67', 'new_1_smaller', 'new_2_smaller'], './merged_replicates/jerala_flat_autotune_5_small.csv', 'flat_af')
+merge_frames(['l61_2mM', 'l62_2mM', 'l67', 'new_1_smaller', 'new_2_smaller'], './merged_replicates/jerala_psuedoreplicate_autotune_5_small.csv',
+             'psuedoreplicate')
+
+merge_frames(['l61_2mM', 'l62_2mM', 'new_2_smaller'], './merged_replicates/jerala_flat_autotune_3_small.csv', 'flat_af')
+merge_frames(['l61_2mM', 'l62_2mM',  'new_2_smaller'], './merged_replicates/jerala_psuedoreplicate_autotune_3_small.csv',
+             'psuedoreplicate')
+
+merge_frames(['l61_2mM', 'l62_2mM', 'new_1_smaller', 'new_2_smaller'], './merged_replicates/jerala_flat_autotune_4_small.csv', 'flat_af')
+merge_frames(['l61_2mM', 'l62_2mM',  'new_1_smaller', 'new_2_smaller'], './merged_replicates/jerala_psuedoreplicate_autotune_4_small.csv',
+             'psuedoreplicate')
+
+
+# merging mALb8 cuts
+merge_frames(['l44', 'l67','new_1_smaller', 'new_2_smaller'], './merged_replicates/malb_truncations_4_smaller_flat_autotune.csv', 'flat_af')
+merge_frames(['l44', 'l67','new_1_smaller', 'new_2_smaller'], './merged_replicates/malb_truncations_4_smaller_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+merge_frames(['l44', 'new_1_smaller', 'new_2_smaller'], './merged_replicates/malb_truncations_3_smaller_flat_autotune.csv', 'flat_af')
+merge_frames(['l44', 'new_1_smaller', 'new_2_smaller'], './merged_replicates/malb_truncations_3_smaller_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+merge_frames(['l44', 'l67','new_1c_fixed', 'new_2c_fixed'], './merged_replicates/malb_truncations_4_flat_autotune.csv', 'flat_af')
+merge_frames(['l44', 'l67','new_1c_fixed', 'new_2c_fixed'], './merged_replicates/malb_truncations_4_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+merge_frames(['l44', 'new_1c_fixed', 'new_2c_fixed'], './merged_replicates/malb_truncations_3_flat_autotune.csv', 'flat_af')
+merge_frames(['l44', 'new_1c_fixed', 'new_2c_fixed'], './merged_replicates/malb_truncations_3_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+#l70 h bond removals
+merge_frames(['l70', 'new_1_smaller', 'new_2_smaller'], './merged_replicates/hbond_malbs_3_smaller_flat_autotune.csv', 'flat_af')
+merge_frames(['l70', 'new_1_smaller', 'new_2_smaller'], './merged_replicates/hbond_malbs_3_smaller_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+merge_frames(['l70', 'new_1c_fixed', 'new_2c_fixed'], './merged_replicates/hbond_malbs_3_flat_autotune.csv', 'flat_af')
+merge_frames(['l70', 'new_1c_fixed', 'new_2c_fixed'], './merged_replicates/hbond_malbs_3_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+#just new 
+merge_frames(['new_1_smaller', 'new_2_smaller'], './merged_replicates/new_smaller_flat_autotune.csv', 'flat_af')
+merge_frames([ 'new_1_smaller', 'new_2_smaller'], './merged_replicates/new_smaller_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+merge_frames([ 'new_1c_fixed', 'new_2c_fixed'], './merged_replicates/new_flat_autotune.csv', 'flat_af')
+merge_frames([ 'new_1c_fixed', 'new_2c_fixed'], './merged_replicates/new_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+#l68 
+merge_frames(['l68', 'new_1_smaller', 'new_2_smaller'], './merged_replicates/plaper_3_smaller_flat_autotune.csv', 'flat_af')
+merge_frames(['l68', 'new_1_smaller', 'new_2_smaller'], './merged_replicates/plaper_3_smaller_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+merge_frames(['l68', 'new_1c_fixed', 'new_2c_fixed'], './merged_replicates/plaper_3_flat_autotune.csv', 'flat_af')
+merge_frames(['l68', 'new_1c_fixed', 'new_2c_fixed'], './merged_replicates/plaper_3_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+merge_frames(['l68', 'new_1_smaller',], './merged_replicates/plaper_2a_smaller_flat_autotune.csv', 'flat_af')
+merge_frames(['l68', 'new_1_smaller', ], './merged_replicates/plaper_2a_smaller_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+merge_frames(['l68',  'new_2_smaller'], './merged_replicates/plaper_2b_smaller_flat_autotune.csv', 'flat_af')
+merge_frames(['l68',  'new_2_smaller'], './merged_replicates/plaper_2b_smaller_psuedoreplicate_autotune.csv', 'psuedoreplicate')
+
+"""
 # merging Jerala replicates
 
 merge_frames(['l61_2mM', 'l62_2mM', 'l67'], './merged_replicates/jerala_flat.csv', 'flat')
@@ -95,3 +150,4 @@ merge_frames(['l44', 'l67'], './merged_replicates/malb_truncations_psuedoreplica
 
 
 
+"""

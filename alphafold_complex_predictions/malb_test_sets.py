@@ -23,7 +23,7 @@ def strip_clashing(x, chain):
 
 def open_malb_predictions(dataset):
     if dataset == 'v2':
-        v2_preds_malbs = pd.read_csv('AF2_rosetta_merged_malbs_cleaned.csv')
+        v2_preds_malbs = pd.read_csv('af_prediction_values_rosetta_energy_terms\AF2_rosetta_merged-v2.csv')
 
         #remove columns which are always the same 
         v2_preds_malbs['fraction_int_all'] = v2_preds_malbs.IA_nres_int/v2_preds_malbs.IA_nres_all.fillna(1)
@@ -31,9 +31,9 @@ def open_malb_predictions(dataset):
         #add other fraction int_all
         v2_preds_malbs['fraction_all'] = v2_preds_malbs.nres_int/v2_preds_malbs.nres_all.fillna(1)
 
-        v2_preds_malbs['ppi'] = v2_preds_malbs.id1 + '_' + v2_preds_malbs.id2
+        v2_preds_malbs['ppi'] = v2_preds_malbs.id1 + '|' + v2_preds_malbs.id2
 
-        v2_preds_malbs['new_ppi'] = v2_preds_malbs.apply(lambda row: row.ppi + '_' + str(row.model_number), axis  =1 )
+        v2_preds_malbs['new_ppi'] = v2_preds_malbs.apply(lambda row: row.ppi + '|' + str(row.model_number), axis  =1 )
 
         min_sc_v2 = v2_preds_malbs[v2_preds_malbs['rosetta-protocol'] == 'rosetta-min-sc'].copy()
         flex_bb_v2 = v2_preds_malbs[v2_preds_malbs['rosetta-protocol'] != 'rosetta-min-sc'].copy()
@@ -41,7 +41,7 @@ def open_malb_predictions(dataset):
         return min_sc_v2, flex_bb_v2
     else:
         #v3 needs some tlc to get num clashing res out 
-        v3_preds = pd.read_csv('AF2_rosetta_merged_malbs_v3_claned.csv')
+        v3_preds = pd.read_csv('af_prediction_values_rosetta_energy_terms\AF2_rosetta_merged-AF-v3.csv')
         v3_preds.drop(columns = ['timed'], inplace = True)
 
         v3_preds['chain_a_clash_num'] = v3_preds.clashing_res.apply(lambda x: strip_clashing(x, 'A'))
@@ -50,11 +50,11 @@ def open_malb_predictions(dataset):
         #remove columns which are always the same 
         v3_preds['fraction_int_all'] = v3_preds.IA_nres_int/v3_preds.IA_nres_all.fillna(1)
         v3_preds['fraction_all'] = v3_preds.nres_int/v3_preds.nres_all.fillna(1)
-        v3_preds['ppi'] = v3_preds.id1 + '_' + v3_preds.id2
+        v3_preds['ppi'] = v3_preds.id1 + '|' + v3_preds.id2
         v3_preds.rename(columns = {'model_number':'model', 'plddt': 'mean_plddt'}, inplace = True)
         v3_preds['type'] = 'v3'
         v3_preds['msa_depth'] = 2
-        v3_preds['new_ppi'] = v3_preds.apply(lambda row: row.ppi + '_' + str(row.model), axis  =1 )
+        v3_preds['new_ppi'] = v3_preds.apply(lambda row: row.ppi + '|' + str(row.model), axis  =1 )
         #drop duplicate new_ppi
 
         min_sc_v2 = v3_preds[v3_preds['rosetta-protocol'] == 'rosetta-min-sc'].copy()

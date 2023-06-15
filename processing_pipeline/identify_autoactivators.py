@@ -112,7 +112,7 @@ def flatten_library_search_for_autoactivators(drive_location, stub_name, trp_tab
 
 # final method screens
 # Jerala P1-P12 series coils
-
+"""
 print('l61')
 flatten_library_search_for_autoactivators("../data/final_mp3seq_method/l61/", 'l61_2mM', 'L61_TRP_44h_table.csv',
                                           'L61_2mM_3AT_HIS_table.csv')
@@ -182,3 +182,21 @@ print('l48')
 flatten_library_search_for_autoactivators("../data/older_mp3seq_method/l48/", 'l48', 'L48_TRP_table.csv',
                                           'L48_HIS_table.csv')
 print('-' * 50)
+"""
+#data\final_mp3seq_method\large_replicate_2023
+print('new 1')
+flatten_library_search_for_autoactivators("../data/final_mp3seq_method/large_rep_nochanges/", 'new_1', 'TRP_table_Trp1.csv',
+                                          'HIS_table_His1.csv')
+print('new 2')
+flatten_library_search_for_autoactivators("../data/final_mp3seq_method/large_rep_nochanges/", 'new_2', 'TRP_table_Trp2.csv',
+                                          'HIS_table_His2.csv')
+
+#removed junk rows 
+print('new 1')
+flatten_library_search_for_autoactivators("../data/final_mp3seq_method/large_rep_nochanges/", 'new_1_smaller', 'TRP_table_Trp1_dropJunk.csv',
+                                          'HIS_table_His1_dropJunk.csv')
+print('new 2')
+flatten_library_search_for_autoactivators("../data/final_mp3seq_method/large_rep_nochanges/", 'new_2_smaller', 'TRP_table_Trp2_dropJunk.csv',
+                                          'HIS_table_His2_dropJunk.csv')
+
+

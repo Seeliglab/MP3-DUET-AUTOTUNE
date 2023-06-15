@@ -64,7 +64,7 @@ def autofill_bad_dbds(flat_df, binders, list_bad_dbds):
             # print (row)
             if row['DBD_DBDAD'] == bad_dbd:
                 # using ADDBD to replace DBDAD
-                if isnan(row['trp1_ADDBD']):  # if the trp count in the replacement is none, copy the none
+                if isnan(row['trp1_ADDBD']):  # if the trp count in the replacement is none, copy the min trp
                     trp_new = min_trp_dbdad
                     his_new = ceil(row['his_fraction_ad_old'] * sum_his_dbdad)
                 elif isnan(row['his1_ADDBD']):
@@ -77,10 +77,10 @@ def autofill_bad_dbds(flat_df, binders, list_bad_dbds):
                 split_df.loc[ind, 'his1_DBDAD'] = his_new
             elif row['DBD_ADDBD'] == bad_dbd:
                 # using DBDAD to replace ADDBD
-                if isnan(row['trp1_ADDBD']):
+                if isnan(row['trp1_DBDAD']):
                     trp_new = min_trp_addbd
                     his_new = ceil(row['his_fraction_dbd_old'] * sum_his_addbd)
-                elif isnan(row['his1_ADDBD']):
+                elif isnan(row['his1_DBDAD']):
                     trp_new = ceil(row['trp_fraction_dbd_old'] * sum_trp_addbd)
                     his_new = min_his_addbd
                 else:
@@ -148,6 +148,157 @@ def autofill_bad_dbds(flat_df, binders, list_bad_dbds):
 
     return flat_again, prep_deseq2, without_homo
 
+def autofill_both(flat_df, binders, list_bad_dbds, list_bad_ads):
+    flat_df['DBD'] = flat_df.PPI.apply(lambda x: x.split(':')[1])
+    flat_df['AD'] = flat_df.PPI.apply(lambda x: x.split(':')[3])
+
+    vals_counts = ['trp1', 'his1']
+    for vc in vals_counts:
+        flat_df.loc[flat_df[vc] == 0, vc] = None
+    flat_df['lin_enrich'] = calculate_enrichment(flat_df['trp1'], flat_df['his1'])
+    keep_cols = ['trp1', 'his1', 'AD', 'DBD', 'lin_enrich']
+
+    split_for_graphing = [split_by_orientation(flat_df, binders, x, True) for x in keep_cols]
+    # make one df
+    split_df = reduce(lambda left, right: pd.merge(left, right, on=['PPI'], how='outer'), split_for_graphing)
+    # DBDAD is lower, ADDBD is upper
+    split_df['trp_fraction_ad_old'] = split_df['trp1_ADDBD'].fillna(0) / split_df['trp1_ADDBD'].sum()
+    split_df['trp_fraction_dbd_old'] = split_df['trp1_DBDAD'].fillna(0) / split_df['trp1_DBDAD'].sum()
+    split_df['his_fraction_ad_old'] = split_df['his1_ADDBD'].fillna(0) / split_df['his1_ADDBD'].sum()
+    split_df['his_fraction_dbd_old'] = split_df['his1_DBDAD'].fillna(0) / split_df['his1_DBDAD'].sum()
+
+    sum_trp_addbd = split_df.trp1_ADDBD.sum()
+    sum_his_addbd = split_df.his1_ADDBD.sum()
+    sum_trp_dbdad = split_df.trp1_DBDAD.sum()
+    sum_his_dbdad = split_df.his1_DBDAD.sum()
+
+    min_trp_addbd = split_df.trp1_ADDBD.min()
+    min_his_addbd = split_df.his1_ADDBD.min()
+    min_trp_dbdad = split_df.trp1_DBDAD.min()
+    min_his_dbdad = split_df.his1_DBDAD.min()
+
+    #correct dbds
+    for bad_dbd in list_bad_dbds:
+        subset = split_df[(split_df.DBD_DBDAD == bad_dbd) | (split_df.DBD_ADDBD == bad_dbd)]
+        subset = subset[subset.DBD_DBDAD != subset.AD_DBDAD]
+        # print (subset)
+        for ind, row in subset.iterrows():
+            # print (row)
+            if row['DBD_DBDAD'] == bad_dbd:
+                # using ADDBD to replace DBDAD
+                if isnan(row['trp1_ADDBD']):  # if the trp count in the replacement is none, copy the min trp
+                    trp_new = min_trp_dbdad
+                    his_new = ceil(row['his_fraction_ad_old'] * sum_his_dbdad)
+                elif isnan(row['his1_ADDBD']):
+                    trp_new = ceil(row['trp_fraction_ad_old'] * sum_trp_dbdad)
+                    his_new = min_his_dbdad
+                else:
+                    trp_new, his_new = back_calculate_pairs(sum_trp_dbdad, sum_his_dbdad, sum_trp_addbd, sum_his_addbd,
+                                                            row['lin_enrich_ADDBD'], row['trp_fraction_ad_old'])
+                split_df.loc[ind, 'trp1_DBDAD'] = trp_new
+                split_df.loc[ind, 'his1_DBDAD'] = his_new
+            elif row['DBD_ADDBD'] == bad_dbd:
+                # using DBDAD to replace ADDBD
+                if isnan(row['trp1_DBDAD']):
+                    trp_new = min_trp_addbd
+                    his_new = ceil(row['his_fraction_dbd_old'] * sum_his_addbd)
+                elif isnan(row['his1_DBDAD']):
+                    trp_new = ceil(row['trp_fraction_dbd_old'] * sum_trp_addbd)
+                    his_new = min_his_addbd
+                else:
+                    trp_new, his_new = back_calculate_pairs(sum_trp_addbd, sum_his_addbd, sum_trp_dbdad, sum_his_dbdad,
+                                                            row['lin_enrich_DBDAD'], row['trp_fraction_dbd_old'])
+                split_df.loc[ind, 'trp1_ADDBD'] = trp_new
+                split_df.loc[ind, 'his1_ADDBD'] = his_new
+    #correct ADs
+    for bad_ad in list_bad_ads:
+        subset = split_df[(split_df.AD_DBDAD == bad_ad) | (split_df.AD_ADDBD == bad_ad)]
+        subset = subset[subset.DBD_DBDAD != subset.AD_DBDAD]  #
+        for ind, row in subset.iterrows():
+            # print (row)
+            if row['AD_DBDAD'] == bad_ad:
+                # using DBDAD to replace ADDBD
+                if isnan(row['trp1_ADDBD']):  # if the trp count in the replacement is none, copy the none
+                    trp_new = min_trp_addbd
+                    his_new = ceil(row['his_fraction_ad_old'] * sum_his_addbd)
+                elif isnan(row['his1_ADDBD']):
+                    trp_new = ceil(row['trp_fraction_ad_old'] * sum_trp_addbd)
+                    his_new = min_his_addbd
+                else:
+                    trp_new, his_new = back_calculate_pairs(sum_trp_dbdad, sum_his_dbdad, sum_trp_addbd, sum_his_addbd,
+                                                            row['lin_enrich_ADDBD'], row['trp_fraction_ad_old'])
+                split_df.loc[ind, 'trp1_DBDAD'] = trp_new
+                split_df.loc[ind, 'his1_DBDAD'] = his_new
+            elif row['AD_ADDBD'] == bad_ad:
+                if isnan(row['trp1_DBDAD']):
+                    trp_new = min_trp_addbd
+                    his_new = ceil(row['his_fraction_dbd_old'] * sum_trp_addbd)
+                elif isnan(row['his1_DBDAD']):
+                    trp_new = ceil(row['trp_fraction_dbd_old'] * sum_his_addbd)
+                    his_new = min_his_addbd
+                else:
+                    trp_new, his_new = back_calculate_pairs(sum_trp_addbd, sum_his_addbd, sum_trp_dbdad, sum_his_dbdad,
+                                                            row['lin_enrich_DBDAD'], row['trp_fraction_dbd_old'])
+                split_df.loc[ind, 'trp1_ADDBD'] = trp_new
+                split_df.loc[ind, 'his1_ADDBD'] = his_new
+    # set all homodimers of the bad protein to 0 manually for both values (these cannot be recovered)
+    #bad_ppis = list(set([x + ':' + x for x in list_bad_dbds] + [x + ':' + x for x in list_bad_ads]))
+    #for bad_int in bad_ppis:
+    #    split_df.loc[split_df.PPI == bad_int, 'trp1_DBDAD'] = None
+    #    split_df.loc[split_df.PPI == bad_int, 'his1_DBDAD'] = None
+    #    split_df.loc[split_df.PPI == bad_int, 'trp1_ADDBD'] = None
+    #    split_df.loc[split_df.PPI == bad_int, 'his1_ADDBD'] = None
+
+    # dealing with homodimers
+    for ind, row in split_df[split_df.DBD_DBDAD == split_df.AD_DBDAD].iterrows():
+        if not isnan(row['trp1_DBDAD']) and not isnan(row['his1_DBDAD']):
+            trp_new_DBDAD, his_new_DBDAD = back_calculate_homodimers(row['trp1_DBDAD'],
+                                                                     sum_trp_dbdad,
+                                                                     sum_his_dbdad,
+                                                                     row['lin_enrich_DBDAD'])
+            trp_new_ADDBD, his_new_ADDBD = back_calculate_homodimers(row['trp1_DBDAD'],
+                                                                     sum_trp_addbd,
+                                                                     sum_his_addbd,
+                                                                     row['lin_enrich_DBDAD'])
+
+            split_df.loc[ind, 'his1_DBDAD'] = his_new_DBDAD
+            split_df.loc[ind, 'his1_ADDBD'] = his_new_ADDBD
+
+    # flatten this df - save a flattened version + DESeq2 ready versions
+    split_df['PPI_DBDAD'] = 'DBD:' + split_df['DBD_DBDAD'] + ':AD:' + split_df['AD_DBDAD']
+    split_df['PPI_ADDBD'] = 'DBD:' + split_df['DBD_ADDBD'] + ':AD:' + split_df['AD_ADDBD']
+
+    half_df = split_df[['PPI_DBDAD', 'trp1_DBDAD', 'his1_DBDAD']].copy()
+    half_df.rename(columns={'PPI_DBDAD': 'PPI', 'trp1_DBDAD': 'trp1', 'his1_DBDAD': 'his1'}, inplace=True)
+
+    half_df2 = split_df[split_df.DBD_DBDAD != split_df.AD_DBDAD][['PPI_ADDBD', 'trp1_ADDBD', 'his1_ADDBD']].copy()
+    half_df2.rename(columns={'PPI_ADDBD': 'PPI', 'trp1_ADDBD': 'trp1', 'his1_ADDBD': 'his1'}, inplace=True)
+
+    flat_again = pd.concat([half_df, half_df2])
+
+    flat_again = flat_again.fillna(0)
+    flat_again['temp_sum'] = flat_again.sum(axis=1)
+
+    # remove bad rows
+    flat_again = flat_again[flat_again.temp_sum != 0].copy()
+    # drop temp col
+    flat_again.drop('temp_sum', inplace=True, axis=1)
+
+    # set up with homodimer retention
+    prep_deseq2 = split_df[['PPI', 'trp1_DBDAD', 'trp1_ADDBD', 'his1_DBDAD', 'his1_ADDBD']]
+    prep_deseq2 = prep_deseq2.fillna(0)
+    # rename the columns
+    prep_deseq2 = prep_deseq2.rename(columns={'trp1_DBDAD': 'count_DBDAD_trp1',
+                                              'trp1_ADDBD': 'count_ADDBD_trp1',
+                                              'his1_DBDAD': 'count_DBDAD_his1',
+                                              'his1_ADDBD': 'count_ADDBD_his1'})
+
+    prep_deseq2['is_homodimer'] = prep_deseq2.PPI.apply(lambda x: x.split(':')[0] == x.split(':')[1])
+    without_homo = prep_deseq2[~prep_deseq2.is_homodimer].copy()
+    prep_deseq2.drop('is_homodimer', inplace=True, axis=1)
+    without_homo.drop('is_homodimer', inplace=True, axis=1)
+
+    return flat_again, prep_deseq2, without_homo
 
 def autofill_bad_ads(flat_df, binders, list_bad_ads):
     flat_df['DBD'] = flat_df.PPI.apply(lambda x: x.split(':')[1])
@@ -185,24 +336,23 @@ def autofill_bad_ads(flat_df, binders, list_bad_ads):
         for ind, row in subset.iterrows():
             # print (row)
             if row['AD_DBDAD'] == bad_ad:
-                # using ADDBD to replace DBDAD
-                if isnan(row['trp1_DBDAD']):  # if the trp count in the replacement is none, copy the none
-                    trp_new = min_trp_dbdad
-                    his_new = ceil(row['his_fraction_dbd_old'] * sum_his_dbdad)
+                # using DBDAD to replace ADDBD
+                if isnan(row['trp1_ADDBD']):  # if the trp count in the replacement is none, copy the none
+                    trp_new = min_trp_addbd
+                    his_new = ceil(row['his_fraction_ad_old'] * sum_his_addbd)
                 elif isnan(row['his1_ADDBD']):
-                    trp_new = ceil(row['trp_fraction_dbd_old'] * sum_trp_dbdad)
-                    his_new = min_his_dbdad
+                    trp_new = ceil(row['trp_fraction_ad_old'] * sum_trp_addbd)
+                    his_new = min_his_addbd
                 else:
                     trp_new, his_new = back_calculate_pairs(sum_trp_dbdad, sum_his_dbdad, sum_trp_addbd, sum_his_addbd,
                                                             row['lin_enrich_ADDBD'], row['trp_fraction_ad_old'])
                 split_df.loc[ind, 'trp1_DBDAD'] = trp_new
                 split_df.loc[ind, 'his1_DBDAD'] = his_new
             elif row['AD_ADDBD'] == bad_ad:
-                # using DBDAD to replace ADDBD
-                if isnan(row['trp1_ADDBD']):
+                if isnan(row['trp1_DBDAD']):
                     trp_new = min_trp_addbd
                     his_new = ceil(row['his_fraction_dbd_old'] * sum_trp_addbd)
-                elif isnan(row['his1_ADDBD']):
+                elif isnan(row['his1_DBDAD']):
                     trp_new = ceil(row['trp_fraction_dbd_old'] * sum_his_addbd)
                     his_new = min_his_addbd
                 else:
