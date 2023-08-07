@@ -91,8 +91,6 @@ library_inputs_list.append(("../data/final_mp3seq_method/large_rep_nochanges/",
                             'HIS_table_His2_dropJunk.csv',
                             ['1004_mALb8x2_rprtc_B', '1005_mALb8x12_fdrtc_B', '1007_mALb8x12j_fdrtc_B', '1008_mALb8x12j_rprtc_B', 'AN4', 'N1'] ))
 
-
-"""
 # Jerala P1-P12 replicates
 library_inputs_list.append(("../data/final_mp3seq_method/l61/",
                             "./processed_replicates/",
@@ -212,7 +210,6 @@ library_inputs_list.append(("../data/older_mp3seq_method/l48/",
                             'L48_TRP_table.csv',
                             'L48_HIS_table.csv',
                             []))
-"""
 def main():
     with Pool() as pool:
         pool.starmap(run_one_library, library_inputs_list)

@@ -1,4 +1,4 @@
-from pipeline_interaction_regression_l2 import load_dataset_single
+from general_funcs import load_dataset_single
 from predictor_comparisons import *
 from processing_functions import *
 import pickle
@@ -78,7 +78,7 @@ def padj_train_best_lasso_eval_on_test_get_preds(best_l1, large_dataset_padj_ord
 
 def get_af_metrics_baselines():
     #AF preds 
-    af_df,et  = load_dataset_single('v2', 'af')
+    af_df,et  = load_dataset_single('v2', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'train']
     avgs_test = test_df.groupby(['ppi']).mean()
 
@@ -94,7 +94,7 @@ def get_af_metrics_baselines():
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
 
     #next df 
-    af_df,et  = load_dataset_single('v1_512', 'af')
+    af_df,et  = load_dataset_single('v1_512', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'train']
     avgs_test = test_df.groupby(['ppi']).mean()
 
@@ -109,7 +109,7 @@ def get_af_metrics_baselines():
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
 
     #next df 
-    af_df,et  = load_dataset_single('mono', 'af')
+    af_df,et  = load_dataset_single('mono', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'train']
     avgs_test = test_df.groupby(['ppi']).mean()
 
@@ -127,7 +127,7 @@ def get_af_metrics_baselines():
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
 
-    af_df,et  = load_dataset_single('v3', 'af')
+    af_df,et  = load_dataset_single('v3', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'train']
     avgs_test = test_df.groupby(['ppi']).mean()
 
@@ -147,7 +147,7 @@ def get_af_metrics_baselines():
     #now we have the ones which worked the best on train - run them on the test 
     test_perfs = []
 
-    af_df,et  = load_dataset_single('v3', 'af')
+    af_df,et  = load_dataset_single('v3', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
     best_col = df_barplot[df_barplot.dataset == 'v3'].r2_cutoff.to_list()[0]
@@ -160,7 +160,7 @@ def get_af_metrics_baselines():
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[best_col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[best_col] *-1 )})
 
-    af_df,et  = load_dataset_single('v2', 'af')
+    af_df,et  = load_dataset_single('v2', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
     best_col = df_barplot[df_barplot.dataset == 'v2'].r2_cutoff.to_list()[0]
@@ -173,7 +173,7 @@ def get_af_metrics_baselines():
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[best_col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[best_col] *-1 )})
     
-    af_df,et  = load_dataset_single('v1_512', 'af')
+    af_df,et  = load_dataset_single('v1_512', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
     best_col = df_barplot[df_barplot.dataset == 'v1_512'].r2_cutoff.to_list()[0]
@@ -186,7 +186,7 @@ def get_af_metrics_baselines():
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[best_col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[best_col] *-1 )})
     
-    af_df,et  = load_dataset_single('mono', 'af')
+    af_df,et  = load_dataset_single('mono', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
     best_col = df_barplot[df_barplot.dataset == 'mono'].r2_cutoff.to_list()[0]
@@ -202,7 +202,7 @@ def get_af_metrics_baselines():
     return  pd.DataFrame(test_perfs)
 
 
-from pipeline_interaction_regression_l2 import load_dataset_single
+from general_funcs import load_dataset_single
 from predictor_comparisons import *
 from processing_functions import *
 import pickle
@@ -285,7 +285,7 @@ def get_af_metrics_baselines_train_test():
 
     rows = []
 
-    af_df,et  = load_dataset_single('v2', 'af')
+    af_df,et  = load_dataset_single('v2', 'af','ncip')
     test_df =  af_df#[af_df.order_padj_sets == 'train']
     avgs_test = test_df.groupby(['ppi']).mean()   
     for col in ['mean_plddt', 'ptm', 'iptm']:
@@ -299,7 +299,7 @@ def get_af_metrics_baselines_train_test():
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
             
-    af_df,et  = load_dataset_single('v2', 'af')
+    af_df,et  = load_dataset_single('v2', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()   
     for col in ['mean_plddt', 'ptm', 'iptm']:
@@ -314,7 +314,7 @@ def get_af_metrics_baselines_train_test():
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
 
     #next df 
-    af_df,et  = load_dataset_single('v1_512', 'af')
+    af_df,et  = load_dataset_single('v1_512', 'af','ncip')
     test_df =  af_df#[af_df.order_padj_sets == 'train']
     avgs_test = test_df.groupby(['ppi']).mean()
 
@@ -330,7 +330,7 @@ def get_af_metrics_baselines_train_test():
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
             
     
-    af_df,et  = load_dataset_single('v1_512', 'af')
+    af_df,et  = load_dataset_single('v1_512', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
 
@@ -345,7 +345,7 @@ def get_af_metrics_baselines_train_test():
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
     #next df 
-    af_df,et  = load_dataset_single('mono', 'af')
+    af_df,et  = load_dataset_single('mono', 'af','ncip')
     test_df =  af_df#[af_df.order_padj_sets == 'train']
     avgs_test = test_df.groupby(['ppi']).mean()
 
@@ -364,7 +364,7 @@ def get_af_metrics_baselines_train_test():
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
     
-    af_df,et  = load_dataset_single('mono', 'af')
+    af_df,et  = load_dataset_single('mono', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
 
@@ -384,7 +384,7 @@ def get_af_metrics_baselines_train_test():
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
 
 
-    af_df,et  = load_dataset_single('v3', 'af')
+    af_df,et  = load_dataset_single('v3', 'af', 'ncip')
     test_df =  af_df#[af_df.order_padj_sets == 'train']
     avgs_test = test_df.groupby(['ppi']).mean()
 
@@ -400,7 +400,7 @@ def get_af_metrics_baselines_train_test():
                 'test_AUCROC':roc_auc_score(avgs_test['binned'], avgs_test[col] *-1 ),
                 'test_avgpr':average_precision_score(avgs_test['binned'], avgs_test[col] *-1 )})
             
-    af_df,et  = load_dataset_single('v3', 'af')
+    af_df,et  = load_dataset_single('v3', 'af','ncip')
     test_df =  af_df[af_df.order_padj_sets == 'test']
     avgs_test = test_df.groupby(['ppi']).mean()
 

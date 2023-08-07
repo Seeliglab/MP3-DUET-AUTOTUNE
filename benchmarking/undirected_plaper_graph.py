@@ -9,7 +9,7 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-deseq_homo_af_batch = pd.read_csv('../processing_pipeline/processed_replicates/deseq_l68_psuedoreplicate_autotune.csv')
+deseq_homo_af_batch = pd.read_csv('../processing_pipeline/merged_replicates/deseq_plaper_3_smaller_psuedoreplicate_autotune.csv')
 deseq_homo_af_batch = deseq_homo_af_batch.rename(columns = {'Unnamed: 0': 'PPI'})
 
 #making main figure graph

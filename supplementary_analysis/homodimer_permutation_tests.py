@@ -49,6 +49,19 @@ library_inputs_list.append(("../data/final_mp3seq_method/l70/",
                             
                             'L70_TRP_table.csv',
                             ))
+
+# large library 
+library_inputs_list.append(("../data/final_mp3seq_method/large_rep_nochanges/",
+                           
+                            'TRP_table_Trp1_dropJunk.csv',
+                           ))
+
+
+library_inputs_list.append(("../data/final_mp3seq_method/large_rep_nochanges/",
+                           
+                            'TRP_table_Trp2_dropJunk.csv',
+                           ))
+
 # older method screens
 
 # DHD1 + DHD0
@@ -133,6 +146,7 @@ def save_all_trp_values(library_inputs_list):
 
 #t-test 
 #reject null, homodimers mean trp is less than over proteins (very high significance)
+#all_trp_counts = save_all_trp_values(library_inputs_list)
 all_trp_values = pd.read_csv('all_trp_counts.csv')
 print (ttest_ind(all_trp_values[all_trp_values.homodimer]['count'].to_numpy(), all_trp_values[~all_trp_values.homodimer]['count'].to_numpy(), alternative = 'less'))
 
@@ -182,9 +196,9 @@ def make_homo_and_het_reshuffle_plot(library_list, n = 1000):
         trp_counts_acutal['count'] = trp_counts_acutal['count']/trp_counts_acutal['count'].sum()
         #print (trp_counts_acutal)
         trp_counts_acutal = trp_counts_acutal.fillna(0)
-        min_max_scaler =  MinMaxScaler()
-        transformed = min_max_scaler.fit_transform(trp_counts_acutal['count'].to_numpy().reshape(-1,1))
-        trp_counts_acutal['count'] = transformed
+        #min_max_scaler =  MinMaxScaler()
+        #transformed = min_max_scaler.fit_transform(trp_counts_acutal['count'].to_numpy().reshape(-1,1))
+        #trp_counts_acutal['count'] = transformed
 
         homo_val, samples = permutation_values(trp_counts_acutal, n)
         sample_p_val = sum([homo_val <= s for s in samples])
@@ -192,12 +206,12 @@ def make_homo_and_het_reshuffle_plot(library_list, n = 1000):
         # We can also normalize our inputs by the total number of counts
         #locs = np.where(locs == i)
         print (l_name, str(1 - round(sample_p_val/n , 2)))
-        if i >= 6:
+        if i >= 8:
             square_axs[np.where(locs == i)[0][0],np.where(locs == i)[1][0]].hist(samples, density=False, color = '#0000bcff')
         else:
             square_axs[np.where(locs == i)[0][0],np.where(locs == i)[1][0]].hist(samples, density=False, color = '#00aad4ff')
         square_axs[np.where(locs == i)[0][0],np.where(locs == i)[1][0]].axvline(homo_val, color = '#c8ab37ff')
-        
+    #fig.set_size_inches(4,3)  
     plt.savefig('permutation_test_homodimer_means_no_share_x.svg')
     plt.close()
 

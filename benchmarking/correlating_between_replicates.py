@@ -24,36 +24,43 @@ replicate_2_flat_no_autoact = pd.read_csv('../processing_pipeline/processed_repl
 replicate_2_flat_no_autoact =  process_fusion_dataframe(replicate_2_flat_no_autoact)
 replicate_3_flat_no_autoact = pd.read_csv('../processing_pipeline/processed_replicates/l67_flat_no_autoactivators.csv')
 replicate_3_flat_no_autoact =  process_fusion_dataframe(replicate_3_flat_no_autoact)
+replicate_4_flat_no_autoact = pd.read_csv('../processing_pipeline/processed_replicates/new_1_smaller_flat_no_autoactivators.csv')
+replicate_4_flat_no_autoact =  process_fusion_dataframe(replicate_3_flat_no_autoact)
+replicate_5_flat_no_autoact = pd.read_csv('../processing_pipeline/processed_replicates/new_2_smaller_flat_no_autoactivators.csv')
+replicate_5_flat_no_autoact =  process_fusion_dataframe(replicate_3_flat_no_autoact)
+
 
 #merge together
 merged = replicate_1_flat_no_autoact.merge(replicate_2_flat_no_autoact, on = 'PPI', suffixes= ['_1', '_2'])
 merged = replicate_3_flat_no_autoact.merge(merged, on = 'PPI', how = 'right')
-merged['log2_enrich_avg'] = merged.apply(lambda row: np.log2(np.nanmean([row['lin_enrich'], row['lin_enrich_1'], row['lin_enrich_2']])), axis = 1)
-merged['log2_enrich_max'] = merged.apply(lambda row: np.log2(np.max([row['lin_enrich'], row['lin_enrich_1'], row['lin_enrich_2']])), axis = 1)
+merged = merged.merge(replicate_4_flat_no_autoact, on = 'PPI', suffixes=['_3', '_4'])
+merged = merged.merge(replicate_5_flat_no_autoact, on = 'PPI')
+merged['log2_enrich_avg'] = merged.apply(lambda row: np.log2(np.nanmean([row['lin_enrich'], row['lin_enrich_1'], row['lin_enrich_2'], row['lin_enrich_3'], row['lin_enrich_4']])), axis = 1)
+merged['log2_enrich_max'] = merged.apply(lambda row: np.log2(np.max([row['lin_enrich'], row['lin_enrich_1'], row['lin_enrich_2'],row['lin_enrich_3'], row['lin_enrich_4']])), axis = 1)
 
 #merge in flat df wtih and without autoactivators for all 3 replicates and flat AF values 
 replicate_all_3 = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_flat.csv')
 replicate_all_3 = replicate_all_3.rename(columns = {'Unnamed: 0': 'PPI'}) 
 replicate_all_3['log2_enrich'] = replicate_all_3['ashr_log2FoldChange_HIS_TRP']
-replicate_all_3_at = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_flat_autotune.csv')
+replicate_all_3_at = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_flat_autotune_5_small.csv')
 replicate_all_3_at = replicate_all_3_at.rename(columns = {'Unnamed: 0': 'PPI'}) 
 replicate_all_3_at['log2_enrich'] = replicate_all_3_at['ashr_log2FoldChange_HIS_TRP']
 jerala_true_flat['log2_enrich'] = np.log(jerala_true_flat['Fold activation'])
 
-merged = replicate_all_3.merge(merged, on = 'PPI', suffixes= ['_lfc_noauto', '_3'], how = 'right')
+merged = replicate_all_3.merge(merged, on = 'PPI', suffixes= ['_lfc_noauto', '_5'], how = 'right')
 merged = replicate_all_3_at.merge(merged, on = 'PPI', how = 'right')
 merged = jerala_true_flat.merge(merged, on  = 'PPI', suffixes = [ '_FA', '_lfc_autotune'])
 print (merged.shape)
 
-combos = list(combinations(['_1', '_2', '_3', '_avg', '_max', '_lfc_noauto', '_lfc_autotune', '_FA'], 2))
+combos = list(combinations(['_1', '_2', '_3', '_4', '_5', '_avg', '_max', '_lfc_autotune', '_FA'], 2))
 
 df_to_graph = pd.DataFrame({'PPI':[], 'correl':[], 'rho':[]})
 for a, b in combos:
         df_to_graph.loc[df_to_graph.shape[0]] = [make_ppi(a,b), get_correls(merged, 'log2_enrich' + a, 'log2_enrich' + b, False)[2], 
                                                  get_correls(merged, 'log2_enrich' + a, 'log2_enrich' + b, False)[3]]
 
-order_libraries = ['_1', '_2', '_3', '_avg', '_max', '_lfc_autotune', '_FA']
-graph_labels = ['R1', 'R2', 'R3', 'Avg E', '_Max E', 'LFC', 'FA']
+order_libraries = ['_1', '_2', '_3', '_4', '_5', '_avg', '_max', '_lfc_autotune', '_FA']
+graph_labels = ['R1', 'R2', 'R3', 'R3', 'R4','Avg E', '_Max E', 'LFC', 'FA']
 x = make_specific_order_lower_triangle(order_libraries, df_to_graph, 'correl',  get_diag = False)
 y = make_specific_order_lower_triangle(order_libraries, df_to_graph, 'rho',  get_diag = False)
 y = y.T
@@ -77,7 +84,13 @@ replicate_1_3 = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jera
 replicate_1_3 = replicate_1_3.rename(columns = {'Unnamed: 0': 'PPI'}) 
 replicate_all_3 = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_psuedoreplicate_autotune.csv')
 replicate_all_3 = replicate_all_3.rename(columns = {'Unnamed: 0': 'PPI'}) 
-    
+replicate_4 = pd.read_csv('../processing_pipeline/merged_replicates/deseq_new_1_smaller_psuedoreplicate_autotune.csv')
+replicate_4 = replicate_4.rename(columns = {'Unnamed: 0': 'PPI'}) 
+replicate_5 = pd.read_csv('../processing_pipeline/merged_replicates/deseq_new_2_smaller_psuedoreplicate_autotune.csv')
+replicate_5 = replicate_5.rename(columns = {'Unnamed: 0': 'PPI'}) 
+
+
+
 merged = replicate_1.merge(replicate_2, on = 'PPI', suffixes = ['_1', '_2'])
 merged = replicate_3.merge(merged, on ='PPI')
 merged = replicate_1_2.merge(merged, on ='PPI', suffixes = ['_1_2', '_3'])
@@ -86,23 +99,25 @@ merged = replicate_1_3.merge(merged, on ='PPI', suffixes = ['_1_3', '_2_3'])
 merged = replicate_all_3.merge(merged, on ='PPI')
 merged = jerala_true_folded_avg.merge(merged, on = 'PPI', suffixes= ['_avg_fa', '_all'])
 merged = jerala_true_folded_max.merge(merged, on = 'PPI')
+merged = merged.merge(replicate_4, on = 'PPI', suffixes = ['_max_fa', '_4'])
+merged = merged.merge(replicate_5, on = 'PPI')
 
 #fold and correlate with P-LFC values per replciate
 log_2_enrich_avg = split_by_orientations(merged_flat, jerala_pros, 'log2_enrich_avg', True)
 log_2_enrich_avg['ashr_log2FoldChange_HIS_TRP'] = log_2_enrich_avg.apply(lambda row: np.nanmean([row['log2_enrich_avg_ADDBD'], row['log2_enrich_avg_DBDAD']]), axis = 1)
-merged = log_2_enrich_avg.merge(merged, on = 'PPI', suffixes = ['_avg_enrich', '_max_fa'])
+merged = log_2_enrich_avg.merge(merged, on = 'PPI', suffixes = ['_avg_enrich', '_5'])
 log_2_enrich_avg = split_by_orientations(merged_flat, jerala_pros, 'log2_enrich_max', True)
 log_2_enrich_avg['ashr_log2FoldChange_HIS_TRP'] = log_2_enrich_avg.apply(lambda row: np.nanmean([row['log2_enrich_max_ADDBD'], row['log2_enrich_max_DBDAD']]), axis = 1)
 merged = log_2_enrich_avg.merge(merged, on = 'PPI')
 
-combos = list(combinations(['_1', '_2', '_3', '_1_2', '_1_3', '_2_3', '_all', '_avg_fa', '_max_fa', '_avg_enrich', ''], 2))
+combos = list(combinations(['_1', '_2', '_3', '_4', '_5', '_all', '_avg_fa', '_max_fa', '_avg_enrich', ''], 2))
 
 df_to_graph = pd.DataFrame({'PPI':[], 'correl':[], 'rho':[]})
 for a, b in combos:
         df_to_graph.loc[df_to_graph.shape[0]] = [make_ppi(a,b), get_correls(merged, 'ashr_log2FoldChange_HIS_TRP' + a, 'ashr_log2FoldChange_HIS_TRP' + b, False)[2], 
                                                  get_correls(merged, 'ashr_log2FoldChange_HIS_TRP' + a, 'ashr_log2FoldChange_HIS_TRP' + b, False)[3]]
-order_libraries = ['_1', '_2', '_3', '_1_2', '_1_3', '_2_3', '_all', '_avg_enrich', '', '_avg_fa', '_max_fa' ]
-graph_labels = ['R1', 'R2', 'R3', 'R1&R2', 'R1&R3', 'R2&R3', 'R1&R2&R3', 'Avg En', 'Max En', 'Avg FA', 'Max FA']
+order_libraries = ['_1', '_2', '_3', '_4', '_5', '_all', '_avg_enrich', '', '_avg_fa', '_max_fa' ]
+graph_labels = ['R1', 'R2', 'R3', 'R4', 'R5',  'R1-5', 'Avg En', 'Max En', 'Avg FA', 'Max FA']
 x = make_specific_order_lower_triangle(order_libraries, df_to_graph, 'correl',  get_diag = False)
 y = make_specific_order_lower_triangle(order_libraries, df_to_graph, 'rho',  get_diag = False)
 y = y.T
@@ -118,7 +133,7 @@ just_kds['kd_error_nm'] = just_kds['kd_error']/(10**-9)
 just_kds['log2_enrich'] = np.log(just_kds['kd_nm'])
 
 #load values for comparison 
-deseq_homo_af_batch = pd.read_csv('../processing_pipeline/processed_replicates/deseq_l68_psuedoreplicate_autotune.csv')
+deseq_homo_af_batch = pd.read_csv('../processing_pipeline/processed_replicates/deseq_plaper_3_smaller_psuedoreplicate_autotune.csv')
 deseq_homo_af_batch = deseq_homo_af_batch.rename(columns = {'Unnamed: 0': 'PPI'})
 deseq_homo_af_batch['log2_enrich'] = deseq_homo_af_batch['ashr_log2FoldChange_HIS_TRP']
 
@@ -156,7 +171,7 @@ order_libraries = ['_avg', '_max', '_PLFC', '_kd']
 x = make_specific_order_lower_triangle(order_libraries, df_to_graph, 'correl',  get_diag = False)
 y = make_specific_order_lower_triangle(order_libraries, df_to_graph, 'rho',  get_diag = False)
 y = y.T
-make_double_heatmap(x, y, order_libraries, 'copper_r', 'bone_r', size_1 = 2.5, size_2 = 2.5, show_names = False, annot = True, font_size = 8, saveName= 'correls_kd_woolfson.svg', show=False)
+make_double_heatmap(x, y, order_libraries, 'copper_r', 'bone_r', size_1 = 2.5, size_2 = 2.5, show_names = True, annot = True, font_size = 8, saveName= 'correls_kd_woolfson.svg', show=False)
 
 off_targets = "#782167ff"
 

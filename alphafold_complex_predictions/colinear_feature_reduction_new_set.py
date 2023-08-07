@@ -1,5 +1,6 @@
 #AML
-#remove highly colinear features to simplify modeling 
+#remove highly colinear features to simplify modeling - for the new dataset (not the main model set) 
+#to compare model performances 
 
 import pandas as pd
 import numpy as np
@@ -108,7 +109,11 @@ naming_dict = {'plddt': 0,
  'sbuns': 89,
  'rank': 90,
  'chain_a_clash_num': 91,
- 'chain_b_clash_num': 92}
+ 'chain_b_clash_num': 92,
+ 'IA_nres_all':93,
+ 'hbond_lr_bb':94,
+ 'nres_all':95,
+ 'vbuns':96}
 
 print (len(naming_dict))
 
@@ -249,41 +254,36 @@ def get_all_tenths_max_interclust(v2_preds, label_cols, aj_important, save_name,
     print (dendro['leaves'])
     return dfs
 
-all_old = pd.read_csv('./af_prediction_values_rosetta_energy_terms/AF2_rosetta_merged.csv')
-all_old.drop(columns = ['timed', 'elapsed_time', 'tol'], inplace = True)
-
-all_old = all_old[all_old.type != 'monomer_ptm']
-v2_preds = all_old[all_old.type == 'multimer_v2'].copy()
-v1_preds_msa_512 = all_old[(all_old.type == 'multimer') & (all_old.msa_depth == 512)].copy()
-v1_preds_msa_1 = all_old[(all_old.type == 'multimer') & (all_old.msa_depth == 1)].copy()
-
+#v2 of new predictions
+v2_preds = pd.read_csv('./af_prediction_values_rosetta_energy_terms/AF2_rosetta_merged-v2.csv')
+v2_preds = v2_preds[v2_preds['rosetta-protocol'] == 'rosetta-flex-bb'].copy().reset_index(drop = True)
+v2_preds.drop(columns = ['timed'], inplace = True)
+v2_preds.drop(columns = 'clashing_res', inplace=True)
+#remove columns which are always the same 
 v2_preds['fraction_int_all'] = v2_preds.IA_nres_int/v2_preds.IA_nres_all.fillna(1)
-v1_preds_msa_512['fraction_int_all'] = v1_preds_msa_512.IA_nres_int/v1_preds_msa_512.IA_nres_all.fillna(1)
-v1_preds_msa_1['fraction_int_all'] = v1_preds_msa_1.IA_nres_int/v1_preds_msa_1.IA_nres_all.fillna(1)
-
-#add other fraction int_all
 v2_preds['fraction_all'] = v2_preds.nres_int/v2_preds.nres_all.fillna(1)
-v1_preds_msa_512['fraction_all'] = v1_preds_msa_512.nres_int/v1_preds_msa_512.nres_all.fillna(1)
-v1_preds_msa_1['fraction_all'] = v1_preds_msa_1.nres_int/v1_preds_msa_1.nres_all.fillna(1)
-
+v2_preds['id1'] = v2_preds.id1.apply(lambda x: x.replace('__','_'))
+v2_preds['id2'] = v2_preds.id2.apply(lambda x: x.replace('__','_'))
 v2_preds['ppi'] = v2_preds.id1 + '_' + v2_preds.id2
-v1_preds_msa_512['ppi'] = v1_preds_msa_512.id1 + '_' + v1_preds_msa_512.id2
-v1_preds_msa_1['ppi'] = v1_preds_msa_1.id1 + '_' + v1_preds_msa_1.id2
-
 v2_preds['on_target'] = v2_preds.ppi.isin(on_target) 
-v1_preds_msa_512['on_target'] = v1_preds_msa_512.ppi.isin(on_target) 
-v1_preds_msa_1['on_target'] = v1_preds_msa_1.ppi.isin(on_target) 
+v2_preds.rename(columns = {'model_number':'model', 'plddt': 'mean_plddt'}, inplace = True)
+v2_preds['type'] = 'v2'
+v2_preds['msa_depth'] = 2
 v2_preds['new_ppi'] = v2_preds.apply(lambda row: row.ppi + '_' + str(row.model), axis  =1 )
-v1_preds_msa_512['new_ppi'] = v1_preds_msa_512.apply(lambda row: row.ppi + '_' + str(row.model), axis  =1 )
-v1_preds_msa_1['new_ppi'] = v1_preds_msa_1.apply(lambda row: row.ppi + '_' + str(row.model), axis  =1 )
 
 #drop duplicate new_ppi
-v2_preds = v2_preds.drop_duplicates('new_ppi', keep = 'first')
-v1_preds_msa_512 = v1_preds_msa_512.drop_duplicates('new_ppi', keep = 'first')
-v1_preds_msa_1 = v1_preds_msa_1.drop_duplicates('new_ppi', keep = 'first')
+v3_values = v2_preds.drop_duplicates('new_ppi', keep = 'first')
+v2_preds = remove_constant_cols(v2_preds, label_cols)
+dfs = get_all_tenths_max_interclust(v2_preds, label_cols, aj_important, './datasets/malb_v2_correl_reduced_r_', dendro_h=5.25, dendro_w=0.75)
 
-#v3 needs some tlc to get num clashing res out 
-v3_preds = pd.read_csv('./af_prediction_values_rosetta_energy_terms/af3_with_resi_strs.csv')
+#af set 
+subset_af = ['mean_plddt', 'pae', 'ptm', 'iptm',]
+v2_preds[label_cols + [x for x in subset_af if x in v2_preds]].to_csv('./datasets/malb_v2_correl_reduced_r_af.csv', index = False)
+
+
+#v3 needs some tlc to get num clashing res out - only version for new predictions 
+v3_preds = pd.read_csv('./af_prediction_values_rosetta_energy_terms/AF2_rosetta_merged-AF-v3.csv')
+v3_preds = v3_preds[v3_preds['rosetta-protocol'] == 'rosetta-flex-bb'].copy().reset_index(drop = True)
 v3_preds.drop(columns = ['timed'], inplace = True)
 v3_preds['chain_a_clash_num'] = v3_preds.clashing_res.apply(lambda x: strip_clashing(x, 'A'))
 v3_preds['chain_b_clash_num'] = v3_preds.clashing_res.apply(lambda x: strip_clashing(x, 'B'))
@@ -291,52 +291,20 @@ v3_preds.drop(columns = 'clashing_res', inplace=True)
 #remove columns which are always the same 
 v3_preds['fraction_int_all'] = v3_preds.IA_nres_int/v3_preds.IA_nres_all.fillna(1)
 v3_preds['fraction_all'] = v3_preds.nres_int/v3_preds.nres_all.fillna(1)
+v3_preds['id1'] = v3_preds.id1.apply(lambda x: x.replace('__','_'))
+v3_preds['id2'] = v3_preds.id2.apply(lambda x: x.replace('__','_'))
 v3_preds['ppi'] = v3_preds.id1 + '_' + v3_preds.id2
 v3_preds['on_target'] = v3_preds.ppi.isin(on_target) 
 v3_preds.rename(columns = {'model_number':'model', 'plddt': 'mean_plddt'}, inplace = True)
 v3_preds['type'] = 'v3'
 v3_preds['msa_depth'] = 2
 v3_preds['new_ppi'] = v3_preds.apply(lambda row: row.ppi + '_' + str(row.model), axis  =1 )
+
 #drop duplicate new_ppi
 v3_values = v3_preds.drop_duplicates('new_ppi', keep = 'first')
-
-
-v2_preds = remove_constant_cols(v2_preds, label_cols)
-v1_preds_msa_512 = remove_constant_cols(v1_preds_msa_512, label_cols)
 v3_preds = remove_constant_cols(v3_preds, label_cols)
+dfs = get_all_tenths_max_interclust(v3_preds, label_cols, aj_important, './datasets/malb_v3_correl_reduced_r_', dendro_h=5.25, dendro_w=0.75)
 
-dfs = get_all_tenths_max_interclust(v1_preds_msa_512, label_cols, aj_important, './datasets/v1_512_correl_reduced_r_', dendro_h=5.25, dendro_w=0.75)
-dfs = get_all_tenths_max_interclust(v2_preds, label_cols, aj_important, './datasets/v2_correl_reduced_r_', dendro_h=5.25, dendro_w = 0.75)
-dfs = get_all_tenths_max_interclust(v3_preds, label_cols, aj_important, './datasets/v3_correl_reduced_r_', dendro_h=5.25, dendro_w=0.75)
-
-#monomer version of AF 
-all_old = pd.read_csv('./af_prediction_values_rosetta_energy_terms/AF2_rosetta_merged.csv')
-all_old.drop(columns = ['timed', 'elapsed_time', 'tol'], inplace = True)
-monomer_ptm = all_old[all_old.type == 'monomer_ptm'].copy()
-monomer_ptm['fraction_int_all'] = monomer_ptm.IA_nres_int/monomer_ptm.IA_nres_all.fillna(1)
-monomer_ptm['fraction_all'] = monomer_ptm.nres_int/monomer_ptm.nres_all.fillna(1)
-monomer_ptm['ppi'] = monomer_ptm.id1 + '_' + monomer_ptm.id2
-
-on_target = []
-for i in range(1,12,2):
-    on_target.append('P' + str(i) + '_' +  'P' + str(i+1))
-    on_target.append('P' + str(i + 1)+ '_' +   'P' + str(i))
-
-monomer_ptm['on_target'] = monomer_ptm.ppi.isin(on_target) 
-monomer_ptm['new_ppi'] = monomer_ptm.apply(lambda row: row.ppi + '_' + str(row.model), axis  =1 )
-monomer_ptm = monomer_ptm.drop_duplicates('new_ppi', keep = 'first')
-mono_preds = remove_constant_cols(monomer_ptm, label_cols)
-df = get_all_tenths_max_interclust(mono_preds, label_cols, aj_important,'./datasets/mono_correl_reduced_r_', dendro_h=5.25, dendro_w=0.75)
-
-#make af output only version of features 
-subset_af = ['plddt', 'mean_plddt', 'pae', 'ptm', 'iptm', 'max_pae']
-v1_preds_msa_512[label_cols + [x for x in subset_af if x in v1_preds_msa_512]].to_csv('./datasets/v1_512_correl_reduced_r_af.csv', index = False)
-subset_af = ['mean_plddt', 'pae', 'ptm', 'iptm',]
-v2_preds[label_cols + [x for x in subset_af if x in v2_preds]].to_csv('./datasets/v2_correl_reduced_r_af.csv', index = False)
-v3_preds[label_cols + [x for x in subset_af if x in v3_preds]].to_csv('./datasets/v3_correl_reduced_r_af.csv', index = False)
-
-mono_only_pae_cols = [ 'mean_pae_interaction_AB',
-       'mean_pae_interaction_BA', 'mean_pae_interaction',
-       'mean_pae_intra_chain_A', 'mean_pae_intra_chain_B',
-       'mean_pae_intra_chain', 'mean_pae', 'pTMscore']
-mono_preds[label_cols + [x for x in subset_af + mono_only_pae_cols if x in mono_preds]].to_csv('./datasets/mono_correl_reduced_r_af.csv', index = False)
+#af set 
+subset_af = ['mean_plddt', 'pae', 'ptm', 'iptm']
+v3_preds[label_cols + [x for x in subset_af if x in v3_preds]].to_csv('./datasets/malb_v3_correl_reduced_r_af.csv', index = False)

@@ -99,6 +99,56 @@ fusion_PPI_replicates <- function(in_name, out_name, num_reps=1, filter=0) {
 }
 
 #individual replicates
+psuedoreplicate_deseq2_with_batch_effects('./processed_replicates/new_1_smaller_psuedoreplicate_autotune.csv', './processed_replicates/deseq_new_1_smaller_psuedoreplicate_autotune.csv')
+psuedoreplicate_deseq2_with_batch_effects('./processed_replicates/new_2_smaller_psuedoreplicate_autotune.csv', './processed_replicates/deseq_new_2_smaller_psuedoreplicate_autotune.csv')
+
+#flat combinations 
+fusion_PPI_replicates('./merged_replicates/jerala_flat_autotune_5_small.csv', './merged_replicates/deseq_jerala_flat_autotune_5_small.csv', 5)
+fusion_PPI_replicates('./merged_replicates/jerala_flat_autotune_3_small.csv', './merged_replicates/deseq_jerala_flat_autotune_3_small.csv', 3)
+fusion_PPI_replicates('./merged_replicates/jerala_flat_autotune_4_small.csv', './merged_replicates/deseq_jerala_flat_autotune_4_small.csv', 4)
+fusion_PPI_replicates('./merged_replicates/malb_truncations_2_flat_autotune.csv', './merged_replicates/deseq_malb_truncations_2_smaller_flat_autotune.csv', 2)
+fusion_PPI_replicates('./merged_replicates/malb_truncations_4_smaller_flat_autotune.csv', './merged_replicates/deseq_malb_truncations_4_smaller_flat_autotune.csv', 4)
+fusion_PPI_replicates('./merged_replicates/malb_truncations_3_smaller_flat_autotune.csv', './merged_replicates/deseq_malb_truncations_3_smaller_flat_autotune.csv', 3)
+fusion_PPI_replicates('./merged_replicates/malb_truncations_3b_smaller_flat_autotune.csv', './merged_replicates/deseq_malb_truncations_3b_smaller_flat_autotune.csv', 3)
+
+fusion_PPI_replicates('./merged_replicates/hbond_malbs_3_smaller_flat_autotune.csv', './merged_replicates/deseq_hbond_malbs_3_smaller_flat_autotune.csv', 3)
+fusion_PPI_replicates('./merged_replicates/new_smaller_flat_autotune.csv', './merged_replicates/deseq_new_smaller_flat_autotune.csv', 2)
+fusion_PPI_replicates('./merged_replicates/new_flat_autotune.csv', './merged_replicates/deseq_new_flat_autotune.csv', 2)
+fusion_PPI_replicates('./merged_replicates/plaper_3_smaller_flat_autotune.csv', './merged_replicates/deseq_plaper_3_smaller_flat_autotune.csv', 3)
+fusion_PPI_replicates('./merged_replicates/plaper_3_flat_autotune.csv', './merged_replicates/deseq_plaper_3_flat_autotune.csv', 3)
+
+#psuedo combinations
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/jerala_psuedoreplicate_autotune_5_small.csv', './merged_replicates/deseq_jerala_psuedoreplicate_autotune_5_small.csv', 5)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/malb_truncations_4_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_malb_truncations_4_smaller_psuedoreplicate_autotune.csv', 4)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/malb_truncations_3_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_malb_truncations_3_smaller_psuedoreplicate_autotune.csv', 3)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/malb_truncations_4_psuedoreplicate_autotune.csv', './merged_replicates/deseq_malb_truncations_4_psuedoreplicate_autotune.csv', 4)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/malb_truncations_3_psuedoreplicate_autotune.csv', './merged_replicates/deseq_malb_truncations_3_psuedoreplicate_autotune.csv', 3)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/hbond_malbs_3_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_hbond_malbs_3_smaller_psuedoreplicate_autotune.csv', 3)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/hbond_malbs_3_psuedoreplicate_autotune.csv', './merged_replicates/deseq_hbond_malbs_3_psuedoreplicate_autotune.csv', 3)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/new_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_new_smaller_psuedoreplicate_autotune.csv', 2)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/new_psuedoreplicate_autotune.csv', './merged_replicates/deseq_new_psuedoreplicate_autotune.csv', 2)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/plaper_3_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_plaper_3_smaller_psuedoreplicate_autotune.csv', 3)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/plaper_3_psuedoreplicate_autotune.csv', './merged_replicates/deseq_plaper_3_psuedoreplicate_autotune.csv', 3)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/plaper_2a_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_plaper_2a_smaller_psuedoreplicate_autotune.csv', 2)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/plaper_2b_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_plaper_2b_smaller_psuedoreplicate_autotune.csv', 2)
+
+
+
+# #filter on different cutoffs 
+fusion_PPI_replicates('./merged_replicates/jerala_flat_autotune_5_small.csv', './merged_replicates/deseq_jerala_flat_f_1.csv', 5, filter = 1)
+fusion_PPI_replicates('./merged_replicates/jerala_flat_autotune_5_small.csv', './merged_replicates/deseq_jerala_flat_f_10.csv', 5, filter = 10)
+fusion_PPI_replicates('./merged_replicates/jerala_flat_autotune_5_small.csv', './merged_replicates/deseq_jerala_flat_f_20.csv', 5,  filter = 20)
+fusion_PPI_replicates('./merged_replicates/jerala_flat_autotune_5_small.csv', './merged_replicates/deseq_jerala_flat_f_30.csv', 5,  filter = 30)
+fusion_PPI_replicates('./merged_replicates/jerala_flat_autotune_5_small.csv', './merged_replicates/deseq_jerala_flat_f_40.csv', 5,  filter = 40)
+
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/plaper_3_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_l68_psuedoreplicate_autotune_f_10.csv', 3,filter = 10)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/plaper_3_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_l68_psuedoreplicate_autotune_f_20.csv',3, filter = 20)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/plaper_3_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_l68_psuedoreplicate_autotune_f_30.csv',3, filter = 30)
+psuedoreplicate_deseq2_with_batch_effects('./merged_replicates/plaper_3_smaller_psuedoreplicate_autotune.csv', './merged_replicates/deseq_l68_psuedoreplicate_autotune_f_40.csv', 3,filter = 40)
+
+
+
+#individual replicates
 psuedoreplicate_deseq2_with_batch_effects('./processed_replicates/l33_psuedoreplicate_autotune.csv', './processed_replicates/deseq_l33_psuedoreplicate_autotune.csv')
 psuedoreplicate_deseq2_with_batch_effects('./processed_replicates/l43_psuedoreplicate_autotune.csv', './processed_replicates/deseq_l43_psuedoreplicate_autotune.csv')
 psuedoreplicate_deseq2_with_batch_effects('./processed_replicates/l44_psuedoreplicate_autotune.csv', './processed_replicates/deseq_l44_psuedoreplicate_autotune.csv')

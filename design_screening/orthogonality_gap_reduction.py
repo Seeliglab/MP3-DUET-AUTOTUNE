@@ -9,7 +9,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from numpy import double
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from graph_tool.all import *
+#from graph_tool.all import *
 
 new_rc_params = {'text.usetex': False,
 "svg.fonttype": 'none'
@@ -121,42 +121,7 @@ def get_jerala_target_ppis():
     return target_ppis
 
 
-#getting orthogonality gaps of other benchmark sets 
-jerala_target_ppis = get_jerala_target_ppis()
-jerala_homo = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_psuedoreplicate_autotune.csv')
-jerala_homo = jerala_homo.rename(columns = {'Unnamed: 0': 'PPI'})
-jerala_homo['on_target'] = jerala_homo.PPI.isin(jerala_target_ppis)
-jerala_diff = jerala_homo[jerala_homo.on_target == True].ashr_log2FoldChange_HIS_TRP.min() - jerala_homo[jerala_homo.on_target == False].ashr_log2FoldChange_HIS_TRP.max()
 
-
-
-#bcl values 
-on_target_interactions = [
-                          ['Bcl-2','alphaBCL2'],
-                          ['Mcl1[151-321]','alphaMCL1'],
-                          ['Bfl-1','alphaBFL1'],
-                          ['Bcl-B','alphaBCLB']
-                         ]
-bcls = ['Bcl-2', 'Mcl1[151-321]','Bcl-B', 'Bfl-1']
-binders = ['alphaBCL2', 'alphaMCL1', 'alphaBCLB','alphaBFL1']
-on_target_ppis = []
-for ot in on_target_interactions:
-    ot.sort()
-    on_target_ppis.append(':'.join(ot))
-
-def mark_type(x):
-    if x in on_target_ppis:
-        return True
-    return False
-
-
-homo_m2= pd.read_csv('../processing_pipeline/merged_replicates/deseq_bcl_psuedoreplicate_autotune.csv')
-homo_m2 = homo_m2.rename(columns = {'Unnamed: 0': 'PPI'})
-homo_m2['pro1'] = homo_m2.PPI.apply(lambda x: x.split(':')[0])
-homo_m2['pro2'] = homo_m2.PPI.apply(lambda x: x.split(':')[1]) 
-homo_m2 = homo_m2[((homo_m2.pro1.isin(bcls)) & (homo_m2.pro2.isin(binders))) | ((homo_m2.pro1.isin(binders)) & (homo_m2.pro2.isin(bcls)))]
-homo_m2['type'] = homo_m2.PPI.apply(lambda x: mark_type(x))
-bcl_diff = homo_m2[homo_m2.type == True].ashr_log2FoldChange_HIS_TRP.min() - homo_m2[homo_m2.type == False].ashr_log2FoldChange_HIS_TRP.max()
 
 #duet results DHD0 & DHD1
 #design_screening/duet_dhd0_dhd1_results.csv
@@ -213,98 +178,138 @@ def get_orthogonality_gapped_duet_results(duet_result_df, all_measurements_df, b
             l39_special_gap = gap_l39[-1]
     return gap_l39, size_set_l39, best_pros, l39_special_gap
 
-duet_results = pd.read_csv('duet_dhd0_dhd1_results.csv')
-duet_pros = list(set(duet_results.pro1.to_list() + duet_results.pro2.to_list()))
-print (duet_results.shape[0])
-full_largest = pd.read_csv('../processing_pipeline/merged_replicates/deseq_dhd1_dhd0_psuedoreplicate_autotune.csv')
-full_largest = full_largest.rename(columns = {'Unnamed: 0': 'PPI'})
-full_largest['pro1'] = full_largest.PPI.apply(lambda x: x.split(':')[0])
-full_largest['pro2'] = full_largest.PPI.apply(lambda x: x.split(':')[1])
-all_pros = list(set(full_largest.pro1.to_list() + full_largest.pro2.to_list()))
-locations = pd.read_csv('draw_l39.csv')
-gap, size_set, best_pros, special_gap = get_orthogonality_gapped_duet_results(duet_results, full_largest, ['A_HT_DHD_73'], 9)
-#filter duet values and draw 
-duet_results_1 = full_largest[full_largest.pro1.isin(best_pros) & full_largest.pro2.isin(best_pros)]
-print (duet_results)
-make_graphviz_graph_fixed_location(duet_results_1, locations, 'orthogonal_duet_dhd0_dhd1.svg')
-print (duet_results.columns)
-n_samples = 1000
-val_comp, all_vals = draw_num_nans_perm_test(full_largest, n_samples, all_pros, duet_pros)
-#fig, ax = plt.subplots(1, figsize=(2,1))
-boxes = sns.displot(all_vals, height=2, aspect=2)
-plt.axvline(val_comp)
-plt.savefig('orthogonal_duet_dhd0_dhd1_random_nans.svg')
-plt.close()
-#plt.close()
+def main():
+    #getting orthogonality gaps of other benchmark sets 
+    jerala_target_ppis = get_jerala_target_ppis()
+    jerala_homo = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_psuedoreplicate_autotune.csv')
+    jerala_homo = jerala_homo.rename(columns = {'Unnamed: 0': 'PPI'})
+    jerala_homo['on_target'] = jerala_homo.PPI.isin(jerala_target_ppis)
+    jerala_diff = jerala_homo[jerala_homo.on_target == True].ashr_log2FoldChange_HIS_TRP.min() - jerala_homo[jerala_homo.on_target == False].ashr_log2FoldChange_HIS_TRP.max()
+
+    print (jerala_diff)
+
+    #bcl values 
+    on_target_interactions = [
+                            ['Bcl-2','alphaBCL2'],
+                            ['Mcl1[151-321]','alphaMCL1'],
+                            ['Bfl-1','alphaBFL1'],
+                            ['Bcl-B','alphaBCLB']
+                            ]
+    bcls = ['Bcl-2', 'Mcl1[151-321]','Bcl-B', 'Bfl-1']
+    binders = ['alphaBCL2', 'alphaMCL1', 'alphaBCLB','alphaBFL1']
+    on_target_ppis = []
+    for ot in on_target_interactions:
+        ot.sort()
+        on_target_ppis.append(':'.join(ot))
+
+    def mark_type(x):
+        if x in on_target_ppis:
+            return True
+        return False
+
+    homo_m2= pd.read_csv('../processing_pipeline/merged_replicates/deseq_bcl_psuedoreplicate_autotune.csv')
+    homo_m2 = homo_m2.rename(columns = {'Unnamed: 0': 'PPI'})
+    homo_m2['pro1'] = homo_m2.PPI.apply(lambda x: x.split(':')[0])
+    homo_m2['pro2'] = homo_m2.PPI.apply(lambda x: x.split(':')[1]) 
+    homo_m2 = homo_m2[((homo_m2.pro1.isin(bcls)) & (homo_m2.pro2.isin(binders))) | ((homo_m2.pro1.isin(binders)) & (homo_m2.pro2.isin(bcls)))]
+    homo_m2['type'] = homo_m2.PPI.apply(lambda x: mark_type(x))
+    bcl_diff = homo_m2[homo_m2.type == True].ashr_log2FoldChange_HIS_TRP.min() - homo_m2[homo_m2.type == False].ashr_log2FoldChange_HIS_TRP.max()
+
+
+    duet_results = pd.read_csv('duet_dhd0_dhd1_results.csv')
+    duet_pros = list(set(duet_results.pro1.to_list() + duet_results.pro2.to_list()))
+    print (duet_results.shape[0])
+    full_largest = pd.read_csv('../processing_pipeline/merged_replicates/deseq_dhd1_dhd0_psuedoreplicate_autotune.csv')
+    full_largest = full_largest.rename(columns = {'Unnamed: 0': 'PPI'})
+    full_largest['pro1'] = full_largest.PPI.apply(lambda x: x.split(':')[0])
+    full_largest['pro2'] = full_largest.PPI.apply(lambda x: x.split(':')[1])
+    all_pros = list(set(full_largest.pro1.to_list() + full_largest.pro2.to_list()))
+    locations = pd.read_csv('draw_l39.csv')
+    gap, size_set, best_pros, special_gap = get_orthogonality_gapped_duet_results(duet_results, full_largest, ['A_HT_DHD_73'], 9)
+    #filter duet values and draw 
+    duet_results_1 = full_largest[full_largest.pro1.isin(best_pros) & full_largest.pro2.isin(best_pros)]
+    print (duet_results)
+    #make_graphviz_graph_fixed_location(duet_results_1, locations, 'orthogonal_duet_dhd0_dhd1.svg')
+    print (duet_results.columns)
+    n_samples = 1000
+    val_comp, all_vals = draw_num_nans_perm_test(full_largest, n_samples, all_pros, duet_pros)
+    #fig, ax = plt.subplots(1, figsize=(2,1))
+    boxes = sns.displot(all_vals, height=2, aspect=2)
+    plt.axvline(val_comp)
+    plt.savefig('orthogonal_duet_dhd0_dhd1_random_nans.svg')
+    plt.close()
+    #plt.close()
 
 
 
-duet_results = pd.read_csv('duet_dhd2_dhd0_malb_results.csv')
-duet_pros = list(set(duet_results.pro1.to_list() + duet_results.pro2.to_list()))
-full_largest = pd.read_csv('../processing_pipeline/merged_replicates/deseq_dhd2_dhd0_malb_psuedoreplicate_autotune.csv')
-full_largest = full_largest.rename(columns = {'Unnamed: 0': 'PPI'})
-full_largest['pro1'] = full_largest.PPI.apply(lambda x: x.split(':')[0])
-full_largest['pro2'] = full_largest.PPI.apply(lambda x: x.split(':')[1])
-all_pros = list(set(full_largest.pro1.to_list() + full_largest.pro2.to_list()))
-gap_2, size_set_2, best_pros_2, special_gap_2 = get_orthogonality_gapped_duet_results(duet_results, full_largest, [], 6)
-#filter duet values and draw 
-locations = pd.read_csv('draw_l43.csv')
-duet_results_2 = full_largest[full_largest.pro1.isin(best_pros_2) & full_largest.pro2.isin(best_pros_2)]
-make_graphviz_graph_fixed_location(duet_results_2, locations, 'orthogonal_duet_dhd0_dhd2_malb.svg')
-val_comp, all_vals = draw_num_nans_perm_test(full_largest, n_samples, all_pros, duet_pros)
-boxes = sns.displot(all_vals, height=2, aspect=2)
-plt.axvline(val_comp)
-plt.savefig('orthogonal_duet_dhd0_dhd2_malb_random_nans.svg')
-plt.close()
-#plt.close()
+    duet_results = pd.read_csv('duet_dhd2_dhd0_malb_results.csv')
+    duet_pros = list(set(duet_results.pro1.to_list() + duet_results.pro2.to_list()))
+    full_largest = pd.read_csv('../processing_pipeline/merged_replicates/deseq_dhd2_dhd0_malb_psuedoreplicate_autotune.csv')
+    full_largest = full_largest.rename(columns = {'Unnamed: 0': 'PPI'})
+    full_largest['pro1'] = full_largest.PPI.apply(lambda x: x.split(':')[0])
+    full_largest['pro2'] = full_largest.PPI.apply(lambda x: x.split(':')[1])
+    all_pros = list(set(full_largest.pro1.to_list() + full_largest.pro2.to_list()))
+    gap_2, size_set_2, best_pros_2, special_gap_2 = get_orthogonality_gapped_duet_results(duet_results, full_largest, [], 6)
+    #filter duet values and draw 
+    locations = pd.read_csv('draw_l43.csv')
+    duet_results_2 = full_largest[full_largest.pro1.isin(best_pros_2) & full_largest.pro2.isin(best_pros_2)]
+    #make_graphviz_graph_fixed_location(duet_results_2, locations, 'orthogonal_duet_dhd0_dhd2_malb.svg')
+    val_comp, all_vals = draw_num_nans_perm_test(full_largest, n_samples, all_pros, duet_pros)
+    boxes = sns.displot(all_vals, height=2, aspect=2)
+    plt.axvline(val_comp)
+    plt.savefig('orthogonal_duet_dhd0_dhd2_malb_random_nans.svg')
+    plt.close()
+    #plt.close()
 
-duet_results = pd.read_csv('duet_all_designed_coils_malb_results.csv')
-duet_pros = list(set(duet_results.pro1.to_list() + duet_results.pro2.to_list()))
-full_largest = pd.read_csv('../processing_pipeline/merged_replicates/deseq_all_designed_coils_psuedoreplicate_autotune.csv')
-full_largest = full_largest.rename(columns = {'Unnamed: 0': 'PPI'})
-full_largest['pro1'] = full_largest.PPI.apply(lambda x: x.split(':')[0])
-full_largest['pro2'] = full_largest.PPI.apply(lambda x: x.split(':')[1])
-all_pros = list(set(full_largest.pro1.to_list() + full_largest.pro2.to_list()))
-gap_3, size_set_3, best_pros_3, special_gap_3 = get_orthogonality_gapped_duet_results(duet_results, full_largest, [], 16)
-#filter duet values and draw 
-locations = pd.read_csv('draw_large.csv')
-duet_results_3 = full_largest[full_largest.pro1.isin(best_pros_3) & full_largest.pro2.isin(best_pros_3)]
-make_graphviz_graph_fixed_location(duet_results_3, locations, 'orthogonal_all_coils.svg')
-val_comp, all_vals = draw_num_nans_perm_test(full_largest, n_samples, all_pros, duet_pros)
-boxes = sns.displot(all_vals, height=2, aspect=2)
-plt.axvline(val_comp)
-plt.savefig('orthogonal_duet_all_random_nans.svg')
-plt.close()
+    duet_results = pd.read_csv('duet_all_designed_coils_malb_results.csv')
+    duet_pros = list(set(duet_results.pro1.to_list() + duet_results.pro2.to_list()))
+    full_largest = pd.read_csv('../processing_pipeline/merged_replicates/deseq_all_designed_coils_psuedoreplicate_autotune.csv')
+    full_largest = full_largest.rename(columns = {'Unnamed: 0': 'PPI'})
+    full_largest['pro1'] = full_largest.PPI.apply(lambda x: x.split(':')[0])
+    full_largest['pro2'] = full_largest.PPI.apply(lambda x: x.split(':')[1])
+    all_pros = list(set(full_largest.pro1.to_list() + full_largest.pro2.to_list()))
+    gap_3, size_set_3, best_pros_3, special_gap_3 = get_orthogonality_gapped_duet_results(duet_results, full_largest, [], 16)
+    #filter duet values and draw 
+    locations = pd.read_csv('draw_large.csv')
+    duet_results_3 = full_largest[full_largest.pro1.isin(best_pros_3) & full_largest.pro2.isin(best_pros_3)]
+    #make_graphviz_graph_fixed_location(duet_results_3, locations, 'orthogonal_all_coils.svg')
+    val_comp, all_vals = draw_num_nans_perm_test(full_largest, n_samples, all_pros, duet_pros)
+    boxes = sns.displot(all_vals, height=2, aspect=2)
+    plt.axvline(val_comp)
+    plt.savefig('orthogonal_duet_all_random_nans.svg')
+    plt.close()
 
-on_targets = "#ffcc00ff"
-off_targets = "#782167ff"
-overall_min = min([min(gap), min(gap_2), min(gap_3)])
-overall_max = max([max(gap), max(gap_2), max(gap_3)])
-small = 3
-big = 5
-linesize = 1
-fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
-ax1.plot(gap, size_set, color = off_targets, marker = '.', markersize = small, alpha = 0.75, lw = linesize)
-ax1.plot(special_gap, 9, color = on_targets, marker = 's', markersize = big, alpha = 1)
-ymin_1, ymax_1 = ax1.get_ylim()
-ax1.vlines([bcl_diff, jerala_diff],ymin_1,ymax_1, color = 'gray', ls = 'dotted')
-ax1.set_ylim(ymin_1, ymax_1)
-ax2.plot(gap_2, size_set_2, color = off_targets, marker = '.',  markersize = small, alpha = 0.75,lw = linesize)
-ax2.plot(special_gap_2, 6, color = on_targets, marker = 's', markersize = big, alpha = 1)
-ymin_1, ymax_1 = ax2.get_ylim()
-ax2.vlines([bcl_diff, jerala_diff],ymin_1,ymax_1, color = 'gray', ls = 'dotted')
-ax2.set_ylim(ymin_1, ymax_1)
-#ax2.vlines([bcl_diff, jerala_diff],ymin,ymax, color = 'gray', ls = 'dotted')
-ax3.plot(gap_3, size_set_3, color = off_targets, marker = '.',  markersize = small, alpha = 0.5)
-ax3.plot(special_gap_3, 16, color = on_targets, marker = 's', markersize = big, alpha = 1,lw = linesize)
-#ax3.vlines([bcl_diff, jerala_diff],ymin,ymax, color = 'gray', ls = 'dotted')
-ymin_1, ymax_1 = ax3.get_ylim()
-ax3.vlines([bcl_diff, jerala_diff],ymin_1,ymax_1, color = 'gray', ls = 'dotted')
-ax3.set_ylim(ymin_1, ymax_1)
+    on_targets = "#ffcc00ff"
+    off_targets = "#782167ff"
+    overall_min = min([min(gap), min(gap_2), min(gap_3)])
+    overall_max = max([max(gap), max(gap_2), max(gap_3)])
+    small = 3
+    big = 5
+    linesize = 1
+    fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
+    ax1.plot(gap, size_set, color = off_targets, marker = '.', markersize = small, alpha = 0.75, lw = linesize)
+    ax1.plot(special_gap, 9, color = on_targets, marker = 's', markersize = big, alpha = 1)
+    ymin_1, ymax_1 = ax1.get_ylim()
+    ax1.vlines([bcl_diff, jerala_diff],ymin_1,ymax_1, color = 'gray', ls = 'dotted')
+    ax1.set_ylim(ymin_1, ymax_1)
+    ax2.plot(gap_2, size_set_2, color = off_targets, marker = '.',  markersize = small, alpha = 0.75,lw = linesize)
+    ax2.plot(special_gap_2, 6, color = on_targets, marker = 's', markersize = big, alpha = 1)
+    ymin_1, ymax_1 = ax2.get_ylim()
+    ax2.vlines([bcl_diff, jerala_diff],ymin_1,ymax_1, color = 'gray', ls = 'dotted')
+    ax2.set_ylim(ymin_1, ymax_1)
+    #ax2.vlines([bcl_diff, jerala_diff],ymin,ymax, color = 'gray', ls = 'dotted')
+    ax3.plot(gap_3, size_set_3, color = off_targets, marker = '.',  markersize = small, alpha = 0.5)
+    ax3.plot(special_gap_3, 16, color = on_targets, marker = 's', markersize = big, alpha = 1,lw = linesize)
+    #ax3.vlines([bcl_diff, jerala_diff],ymin,ymax, color = 'gray', ls = 'dotted')
+    ymin_1, ymax_1 = ax3.get_ylim()
+    ax3.vlines([bcl_diff, jerala_diff],ymin_1,ymax_1, color = 'gray', ls = 'dotted')
+    ax3.set_ylim(ymin_1, ymax_1)
 
-plt.xlim(overall_min,overall_max)
-fig.tight_layout()
-fig.set_size_inches(1,3.2)
-plt.savefig('duet_supersets_all.svg', dpi = 300)
-plt.close()
+    plt.xlim(overall_min,overall_max)
+    fig.tight_layout()
+    fig.set_size_inches(1,2.25)
+    plt.savefig('duet_supersets_all.svg', dpi = 300)
+    plt.close()
 
+if __name__ == "__main__":
+    main()

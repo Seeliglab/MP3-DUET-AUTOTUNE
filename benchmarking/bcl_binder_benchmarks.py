@@ -183,7 +183,9 @@ make_lower_heatmap(x, order_binders, 'bone_r',size_1 = 4, size_2 = 4, saveName =
 #boxplots & p-value analysis 
 h = 1.25
 w = 1.1
-sns.boxplot(data = both, y = 'pairwise_val', x = 'capped_out', palette = {True: '#d2eedeff', False: '#d7eef4ff'})#, kind = 'box')
+
+sns.stripplot(data = both, y = 'pairwise_val', x = 'capped_out', size = 3, color = 'black')
+sns.boxplot(data = both, y = 'pairwise_val', x = 'capped_out', palette = {True: '#d2eedeff', False: '#d7eef4ff'})#, alpha = 0.75)#, kind = 'box')
 plt.ylabel('')
 plt.xlabel('')
 plt.xticks([])
@@ -194,7 +196,9 @@ plt.savefig("./figures/pair_log_cap.svg" )
 plt.show()
             
             
-sns.boxplot(data = both, y = 'batched_val', x = 'capped_out', palette = {True: '#d2eedeff', False: '#d7eef4ff'})#, kind = 'box')
+
+sns.stripplot(data = both, y = 'batched_val', x = 'capped_out', size = 3, color = 'black')
+sns.boxplot(data = both, y = 'batched_val', x = 'capped_out', palette = {True: '#d2eedeff', False: '#d7eef4ff'})#, alpha = 0.75)#, kind = 'box')
 plt.ylabel('')
 plt.xlabel('')
 plt.xticks([])
@@ -204,7 +208,9 @@ fig.set_size_inches(h,w*0.95)
 plt.savefig("./figures/pair_batch_cap.svg" )
 plt.show()
 
-sns.boxplot(data = both, y = 'ashr_log2FoldChange_HIS_TRP', x = 'capped_out', palette = {True: '#f4e3d7ff', False: '#b17047ff'})#, kind = 'box')
+
+sns.stripplot(data = both, y = 'ashr_log2FoldChange_HIS_TRP', x = 'capped_out', size = 3, color = 'black')
+sns.boxplot(data = both, y = 'ashr_log2FoldChange_HIS_TRP', x = 'capped_out', palette = {True: '#f4e3d7ff', False: '#b17047ff'})#, alpha = 0.75)#, kind = 'box')
 plt.ylabel('')
 plt.xlabel('')
 plt.xticks([])
