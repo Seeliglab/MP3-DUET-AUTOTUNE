@@ -1,0 +1,282 @@
+<?xml-model href="file:///home/ajasja/rosettascripts.xsd" ?>
+<ROSETTASCRIPTS>
+    <SCOREFXNS>
+        <ScoreFunction name="sfxn_design" weights="beta_nov16" >
+            <Reweight scoretype="netcharge" weight="1.0" />
+            <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+            <Reweight scoretype="res_type_constraint" weight="1.0"/>
+            <Reweight scoretype="sap_constraint" weight="1.0" />
+            <Reweight scoretype="approximate_buried_unsat_penalty" weight="4.0" />
+			<Set approximate_buried_unsat_penalty_hbond_energy_threshold="-0.3" />
+			<Set approximate_buried_unsat_penalty_burial_atomic_depth="4.0" />
+			<Set approximate_buried_unsat_penalty_assume_const_backbone="true" />  
+        </ScoreFunction>
+
+        <ScoreFunction name="sfxn_design_cart" weights="beta_nov16_cart" >
+            <Reweight scoretype="netcharge" weight="1.0" />
+            <Reweight scoretype="coordinate_constraint" weight="1.0"/>
+            <Reweight scoretype="res_type_constraint" weight="1.0"/>
+            <Reweight scoretype="sap_constraint" weight="1.0" />
+            <Reweight scoretype="approximate_buried_unsat_penalty" weight="4.0" />
+			<Set approximate_buried_unsat_penalty_hbond_energy_threshold="-0.3" />
+			<Set approximate_buried_unsat_penalty_burial_atomic_depth="4.0" />
+			<Set approximate_buried_unsat_penalty_assume_const_backbone="true" />  
+        </ScoreFunction>       
+        <ScoreFunction name="sfxn_clean" weights="beta_nov16_cart" />
+        <ScoreFunction name="sfxn_clean_cart" weights="beta_nov16_cart" />
+    </SCOREFXNS>
+
+    <RESIDUE_SELECTORS>
+		<Chain name="chainA" chains="A" />
+		<Chain name="chainB" chains="B" />
+
+		<SecondaryStructure name="sheet" overlap="0" minH="3" minE="2" include_terminal_loops="false" use_dssp="true" ss="E"/>
+		<SecondaryStructure name="entire_loop" overlap="0" minH="3" minE="2" include_terminal_loops="true" use_dssp="true" ss="L"/>
+		<SecondaryStructure name="entire_helix" overlap="0" minH="3" minE="2" include_terminal_loops="false" use_dssp="true" ss="H"/>
+		<And name="helix_cap" selectors="entire_loop">
+			<PrimarySequenceNeighborhood lower="1" upper="0" selector="entire_helix"/>
+		</And>
+		<And name="helix_start" selectors="entire_helix">
+			<PrimarySequenceNeighborhood lower="0" upper="1" selector="helix_cap"/>
+		</And>
+		<And name="helix" selectors="entire_helix">
+			<Not selector="helix_start"/>
+		</And>
+		<And name="loop" selectors="entire_loop">
+			<Not selector="helix_cap"/>
+		</And>
+
+		<InterfaceByVector name="design_interface_A" cb_dist_cut="9" nearby_atom_cut="4" vector_angle_cut="75" vector_dist_cut="8.0" grp1_selector="chainA" grp2_selector="chainB" />
+		<InterfaceByVector name="design_interface_B" cb_dist_cut="9" nearby_atom_cut="4" vector_angle_cut="75" vector_dist_cut="8.0" grp1_selector="chainB" grp2_selector="chainA" />
+		<Or name="interface_by_vec" selectors="design_interface_A,design_interface_B" />
+
+        <Neighborhood name="interface_chA" selector="chainA" distance="8.0"/>
+		<Neighborhood name="interface_chB" selector="chainB" distance="8.0"/>
+		<And name="interface_near" selectors="interface_chA,interface_chB" />
+
+        <Logic name="interface" selector="interface_near or interface_by_vec" />
+        
+        <Index name="hbnet" resnums="99999" error_on_out_of_bounds_index="0"/>
+        <Index name="target_design" resnums="99999" error_on_out_of_bounds_index="0" />
+        <Neighborhood name="design_shell"   selector="target_design" distance="6.0" include_focus_in_subset="false"/>
+        <Neighborhood name="around_design_shell"  selector="design_shell"  distance="8.0" include_focus_in_subset="false"/>
+        <Logic name="repack_shell" selector="around_design_shell and not (target_design or design_shell)" />
+
+        %%do_sasa%%    
+        //AJ bundles
+		<Layer name="core" use_sidechain_neighbors="false" core_cutoff="19" surface_cutoff="40" select_core="true" />
+		<Layer name="bdry" use_sidechain_neighbors="false" core_cutoff="19" surface_cutoff="40" select_boundary="true" />		
+		<Layer name="surf" use_sidechain_neighbors="false" core_cutoff="19" surface_cutoff="40" select_surface="true" />
+        -->
+        
+        ResiduePDBInfoHasLabel name="hbnet" property="HBNet" />
+        <ResidueName name="polar_aas" residue_name3="SER,THR,ASN,GLN,HIS,TYR,TRP,ASP" />
+        <Logic name="core_polar"  residue_selector="core AND polar_aas "/>
+        <ScoreTermValueBased name="clashing_res" score_type="fa_rep" score_fxn="sfxn"  lower_threshold="3" upper_threshold="99999" />
+
+    </RESIDUE_SELECTORS>
+	<RESIDUE_LEVEL_TASK_OPERATIONS>
+        <PreventRepackingRLT name="repack" />
+        <RestrictToRepackingRLT name="fix" />
+        <IncludeCurrentRLT name="design" />
+    </RESIDUE_LEVEL_TASK_OPERATIONS>    
+    <TASKOPERATIONS>
+        <IncludeCurrent name="ic" /> //includes input pdbs rotamers
+		<LimitAromaChi2 name="limitaro" chi2max="110" chi2min="70" include_trp="1" /> //disallow extreme aromatic rotamers
+		<ExtraRotamersGeneric name="ex1_ex2" ex1="1" ex2="1" /> //use ex1 ex2 rotamers
+        <RestrictToRepacking name="repack_only" />	//for minimize/repack
+        <SetIGType name="precompIG" precompute_ig="true" />
+        <ConsensusLoopDesign name="disallow_non_abego_aas" include_adjacent_residues="1"/>
+
+        <OperateOnResidueSubset name="restrict_loop" selector="loop"><RestrictToRepackingRLT/></OperateOnResidueSubset>
+        <OperateOnResidueSubset name="restrict_interface_by_vec" selector="interface_by_vec"><RestrictToRepackingRLT/></OperateOnResidueSubset>
+        <OperateOnResidueSubset name="restrict_hbnet" selector="hbnet"><RestrictToRepackingRLT/></OperateOnResidueSubset>
+        <OperateOnResidueSubset name="restrict_core" selector="core"><RestrictToRepackingRLT/></OperateOnResidueSubset>
+        <OperateOnResidueSubset name="fix_hbnet" selector="hbnet"><PreventRepackingRLT/></OperateOnResidueSubset>
+        <OperateOnResidueSubset name="fix_core"  selector="core"><PreventRepackingRLT/></OperateOnResidueSubset>
+
+        <DesignRestrictions name="layer_design_sasa" >
+			<Action selector_logic="surf AND ( helix OR sheet )"	aas="EKRQT" />
+			<Action selector_logic="surf AND helix_start"			aas="DEKRNQSTP"/>
+			<Action selector_logic="surf AND loop"					aas="DEKRNQSTGP" />
+			<Action selector_logic="bdry AND helix"			    	aas="ILVAEKRQTWY" />
+			<Action selector_logic="bdry AND helix_start"			aas="ILVADEKRNQSTWYP"/>
+			<Action selector_logic="bdry AND sheet"			    	aas="ILVADEKRNQSTYW" />
+			<Action selector_logic="bdry AND loop"					aas="ILVAFDEKRNQSTGPYW" />
+			<Action selector_logic="core AND helix"			    	aas="ILVAF" />
+			<Action selector_logic="core AND helix_start"			aas="ILVAFP"/>
+			<Action selector_logic="core AND sheet"				    aas="ILVAF" />
+			<Action selector_logic="core AND loop"					aas="ILVAFGP" />
+			<Action selector_logic="helix_cap"						aas="DNST"/>
+		</DesignRestrictions>
+
+        <DesignRestrictions name="restrictions" >
+			<Action residue_level_operations="repack" selector_logic="surf" />
+			<Action residue_level_operations="repack" selector_logic="bdry"	 />
+			<Action residue_level_operations="fix" selector_logic="core"	 />
+		</DesignRestrictions>
+
+        <ProteinProteinInterfaceUpweighter name="up_ppi" interface_weight="2"  />
+    </TASKOPERATIONS>
+    <MOVERS>
+        <AddResidueLabel name="label_core" residue_selector="core" label="core" />
+		<AddResidueLabel name="label_bdry" residue_selector="bdry" label="bdry" />
+		<AddResidueLabel name="label_surf" residue_selector="surf" label="surf" />
+
+        <AddResidueLabel name="label_interface_by_vec" residue_selector="interface_by_vec" label="interface_by_vec" />
+		<AddResidueLabel name="label_interface_near" residue_selector="interface_near" label="interface_near" />
+
+        <AddResidueLabel name="label_core_polar" residue_selector="core_polar" label="core_polar" />
+       
+        <AddResidueLabel name="label_target_design" residue_selector="target_design" label="target_design" />
+        <AddResidueLabel name="label_design_shell" residue_selector="design_shell" label="design_shell" />
+        <AddResidueLabel name="label_repack_shell" residue_selector="repack_shell" label="repack_shell" />
+        <AddResidueLabel name="label_interface" residue_selector="interface" label="interface" />
+        
+        
+
+
+
+    </MOVERS>
+    <SIMPLE_METRICS>
+
+        <SapScoreMetric name="sap_score" />
+
+        <PerResidueSapScoreMetric name="per_res_sap" />
+        <PerResidueSasaMetric name="per_res_sasa" mode="all_sasa" />
+        <SidechainNeighborCountMetric name="per_res_nc" angle_exponent="2.5" angle_shift_factor="0.5" dist_exponent="0.7" dist_midpoint="9" res_denominator="1" />
+        <SequenceMetric name="seqA" custom_type="seqA" residue_selector="chainA" />
+        <SequenceMetric name="seqB" custom_type="seqB" residue_selector="chainB" />
+        <SelectedResidueCountMetric name="num_hbnet" residue_selector="hbnet" />
+
+        <SelectedResidueCountMetric name="num_res_all"  />
+        <TotalEnergyMetric name="total_score" scoretype="total_score" scorefxn="sfxn_clean" />    
+        <CalculatorMetric name="score_per_res" equation="total_score / num_res_all" >
+            <Var name="total_score" metric="total_score" />
+            <Var name="num_res_all" metric="num_res_all" />
+        </CalculatorMetric>
+        
+        <SelectedResidueCountMetric name="num_core_polar" residue_selector="core AND polar_aas"  />
+        <SelectedResiduesPyMOLMetric name="target_design_pymol"  residue_selector="target_design" />
+        <SelectedResiduesPyMOLMetric name="test_pymol"  residue_selector="target_design" custom_type="test_pymol" />
+        <SelectedResiduesPyMOLMetric name="clashing_res" residue_selector="clashing_res" custom_type="clashing_res" />
+    </SIMPLE_METRICS>
+
+    <FILTERS>
+
+        <Time name="timed"/>
+        <NetCharge name="chargeA" chain="1" confidence="0" />
+        <NetCharge name="chargeB" chain="2" confidence="0" />
+
+        <ShapeComplementarity name="sc2" min_sc="0.6" verbose="1" quick="0" residue_selector1="chainA" residue_selector2="chainB" write_int_area="1" write_median_dist="1" confidence="0" />
+		
+        
+        <SSPrediction name="psipred" confidence="0" cmd="/home/ajasja/scripts/psipred3.21/runpsipred_csbuild_single" use_probability="0" use_svm="false"/>
+        <SSPrediction name="psipred_mismatch" confidence="0" cmd="/home/ajasja/scripts/psipred3.21/runpsipred_csbuild_single" use_probability="1" mismatch_probability="1" use_svm="false"/>
+
+        <ExposedHydrophobics name="exposed_hydrop" sasa_cutoff="20" threshold="0" confidence="0"/>
+
+        <ContactMolecularSurface name="cms" distance_weight="0.5" use_rosetta_radii="true" apolar_target="0" 
+        target_selector="chainA" binder_selector="chainB" confidence="0" />
+        <ContactMolecularSurface name="cms_sq5" distance_weight="0.5"  use_rosetta_radii="true" apolar_target="0" 
+        target_selector="chainA" binder_selector="chainB" confidence="0" near_squared_size="5" />
+        <ContactMolecularSurface name="cms_apolar" distance_weight="0.5" use_rosetta_radii="true" apolar_target="1" 
+        target_selector="chainA" binder_selector="chainB" confidence="0" />
+
+        <BuriedUnsatHbonds name="vbuns"  report_all_heavy_atom_unsats="true" scorefxn="sfxn_clean" ignore_surface_res="false" print_out_info_to_pdb="true" atomic_depth_selection="5" burial_cutoff="1000" residue_surface_cutoff="42.5" dalphaball_sasa="0" confidence="0"  only_interface="false"  />
+		<BuriedUnsatHbonds name="sbuns" report_all_heavy_atom_unsats="true" scorefxn="sfxn_clean" cutoff="4" residue_surface_cutoff="42.5" ignore_surface_res="false" print_out_info_to_pdb="true" dalphaball_sasa="0wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww" probe_radius="1.1" atomic_depth_selection="5.5" atomic_depth_deeper_than="false" only_interface="false" confidence="0" />
+    </FILTERS>
+
+    <MOVERS>
+
+        <PackRotamersMover name="repack_surf" scorefxn="sfxn_clean" task_operations="ic,limitaro,ex1_ex2,restrictions,repack_only" />
+        <PackRotamersMover name="repack_all" scorefxn="sfxn_clean" task_operations="ic,limitaro,ex1_ex2,repack_only" />
+        
+        <MinMover name="minimize_sc_all" scorefxn="sfxn_clean" bb="0" chi="1" />
+        <TaskAwareMinMover name="task_min_sc" chi="1" bb="0" jump="0" max_iter="2000" type="lbfgs_armijo_nonmonotone" tolerance=".001" scorefxn="sfxn_design_cart"
+        task_operations="restrictions" />
+        
+        <MinMover name="minimize_all_sc"       scorefxn="sfxn_design_cart" cartesian="1" type="lbfgs_armijo_nonmonotone" max_iter="1000" tolerance="0.001" bb="0" chi="1" jump="0" />
+        <MinMover name="minimize_all_bb_sc"    scorefxn="sfxn_design_cart" cartesian="1" type="lbfgs_armijo_nonmonotone" max_iter="1000" tolerance="0.001" bb="1" chi="1" jump="0" />
+        <MinMover name="minimize_all_sc_clean" scorefxn="sfxn_clean_cart"  cartesian="1" type="lbfgs_armijo_nonmonotone" max_iter="1000" tolerance="0.001" bb="0" chi="1" jump="0" />
+        <MinMover name="minimize_all_sc_bb_clean"    scorefxn="sfxn_clean_cart" cartesian="1" type="lbfgs_armijo_nonmonotone" max_iter="1000" tolerance="0.001" bb="1" chi="1" jump="0" />
+
+
+        <TaskAwareMinMover name="task_min_all" chi="1" bb="1" jump="0" max_iter="2000" type="lbfgs_armijo_nonmonotone" tolerance=".001" scorefxn="sfxn_design_cart"
+        task_operations="restrictions" />
+
+        <AddConstraintsToCurrentConformationMover name="add_backbone_cst" use_distance_cst="0" coord_dev="4.0" CA_only="true"/>
+
+        <InterfaceAnalyzerMover name="analyze_interface" scorefxn="sfxn_clean"
+        packstat="1" interface_sc="1" use_jobname="1" 
+        jump="1" scorefile_reporting_prefix="IA" />
+
+        <FastDesign name="fast_design" scorefxn="sfxn_design_cart"  relaxscript="MonomerDesign2019" repeats="1" ramp_down_constraints="false" 
+		task_operations="ic,limitaro,ex1_ex2,layer_design_sasa,restrictions,up_ppi,disallow_non_abego_aas"  dualspace="0" cartesian="1" clear_designable_residues="1" />
+        
+        <ddG name="ddG_no_repack" translate_by="1000" scorefxn="sfxn_clean" task_operations="repack_only,ic,ex1_ex2" relax_mover="minimize_sc_all"
+        	repack_bound="0" 
+        	relax_bound="0" 
+        	repack_unbound="0" 
+        	relax_unbound="1"
+	    jump="1"
+		dump_pdbs="0"	/>  
+
+         
+         <AddSapConstraintMover name="add_sap" speed="fast" sap_goal="0"  penalty_per_sap="5"   packing_correction="0" />
+         <ClearConstraintsMover name="clear_constraints" />
+    </MOVERS>
+
+    <PROTOCOLS>
+        <Add filter="timed" />
+
+     
+
+        Add metrics="per_res_sasa,per_res_nc" />
+
+
+      
+        <Add metrics="num_hbnet" labels="num_hbnet" />
+
+        <Add mover="label_core" />
+        <Add mover="label_bdry" />
+        <Add mover="label_surf" />
+     
+        <Add mover="label_interface_by_vec" />
+        <Add mover="label_interface_near" />
+        <Add mover="label_core_polar" />
+        
+
+        Add mover="add_backbone_cst" />
+
+        %%do_repack%%	    
+        <Add mover="repack_surf" />
+        <Add mover="minimize_all_sc_clean" />
+        <Add mover="repack_surf" />
+        <Add mover="minimize_all_sc_clean" />
+        <Add mover="repack_all" />
+        <Add mover="minimize_all_sc_bb_clean" />
+        -->
+      
+
+        
+        <Add mover="analyze_interface" />
+        <Add mover="ddG_no_repack" />
+    
+        <Add filter="exposed_hydrop" />
+    
+
+        <Add filter="sc2" />
+        <Add metrics="seqA,seqB" />
+        <Add metrics="score_per_res,num_core_polar" />
+        <Add filter="cms" />
+        <Add filter="cms_sq5" />
+        <Add filter="cms_apolar" /> 
+        <Add metrics="clashing_res" />       
+        <Add filter_name="vbuns" />
+        <Add filter_name="sbuns" />
+
+        <Add filter="timed" />
+    </PROTOCOLS>
+    <OUTPUT scorefxn="sfxn_clean_cart" />
+</ROSETTASCRIPTS>

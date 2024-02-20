@@ -1,0 +1,63 @@
+SETTING UP AF2 RUNNING AS aljubetic@compute-0-10
+SETTING UP PROXY
+RUNNING IN:
+/home/aljubetic/AF2/projects/2023-01-20__MP3_All-by-all
+Free device is 0
+WARNING: You are welcome to use the default MSA server, however keep in mind that it's a limited shared resource only capable of processing a few thousand MSAs per day. Please submit jobs only from a single IP address. We reserve the right to limit access to the server case-by-case when usage exceeds fair use.
+
+If you require more MSAs, please host your own API and pass it to `--host-url`
+2023-01-20 16:42:51,447 Running colabfold 1.2.0 (f3f924e4d0acc69ebab7083ca895339976e57f12)
+2023-01-20 16:42:51,466 Found 2 citations for tools or databases
+2023-01-20 16:43:10,927 Query 1/4: A_HT_DHD_31__A_HT_DHD_31 (length 58)
+2023-01-20 16:43:10,942 Running model_3
+2023-01-20 16:46:24,659 model_3 took 193.7s (6 recycles) with pLDDT 73.9 and ptmscore 0.492
+2023-01-20 16:46:25,212 Running model_4
+2023-01-20 16:46:36,552 model_4 took 11.3s (6 recycles) with pLDDT 75.3 and ptmscore 0.491
+2023-01-20 16:46:36,977 Running model_5
+2023-01-20 16:46:48,321 model_5 took 11.3s (6 recycles) with pLDDT 75.1 and ptmscore 0.482
+2023-01-20 16:46:48,775 Running model_1
+2023-01-20 16:47:00,107 model_1 took 11.3s (6 recycles) with pLDDT 72.6 and ptmscore 0.458
+2023-01-20 16:47:00,536 Running model_2
+2023-01-20 16:47:11,869 model_2 took 11.3s (6 recycles) with pLDDT 82.7 and ptmscore 0.594
+2023-01-20 16:47:12,301 reranking models by multimer
+2023-01-20 16:47:14,271 Query 2/4: A_HT_DHD_31__A_HT_DHD_36 (length 58)
+  0%|          | 0/300 [elapsed: 00:00 remaining: ?]SUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?]PENDING:   0%|          | 0/300 [elapsed: 00:01 remaining: ?]                                                             PENDING:   0%|          | 0/300 [elapsed: 00:01 remaining: ?]COMPLETE:   0%|          | 0/300 [elapsed: 00:09 remaining: ?]COMPLETE: 100%|██████████| 300/300 [elapsed: 00:09 remaining: 00:00]COMPLETE: 100%|██████████| 300/300 [elapsed: 00:10 remaining: 00:00]
+2023-01-20 16:47:15,816 Sleeping for 7s. Reason: PENDING
+2023-01-20 16:47:25,117 Running model_3
+2023-01-20 16:47:36,426 model_3 took 11.3s (6 recycles) with pLDDT 72.3 and ptmscore 0.498
+2023-01-20 16:47:36,871 Running model_4
+2023-01-20 16:47:48,212 model_4 took 11.3s (6 recycles) with pLDDT 69.8 and ptmscore 0.491
+2023-01-20 16:47:48,573 Running model_5
+2023-01-20 16:47:59,907 model_5 took 11.3s (6 recycles) with pLDDT 73.7 and ptmscore 0.469
+2023-01-20 16:48:00,342 Running model_1
+2023-01-20 16:48:11,655 model_1 took 11.3s (6 recycles) with pLDDT 71.4 and ptmscore 0.463
+2023-01-20 16:48:12,043 Running model_2
+2023-01-20 16:48:23,363 model_2 took 11.3s (6 recycles) with pLDDT 72.9 and ptmscore 0.482
+2023-01-20 16:48:23,770 reranking models by multimer
+2023-01-20 16:48:24,622 Query 3/4: A_HT_DHD_36__A_HT_DHD_31 (length 58)
+  0%|          | 0/300 [elapsed: 00:00 remaining: ?]SUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?]PENDING:   0%|          | 0/300 [elapsed: 00:01 remaining: ?]                                                             PENDING:   0%|          | 0/300 [elapsed: 00:01 remaining: ?]COMPLETE:   0%|          | 0/300 [elapsed: 00:09 remaining: ?]COMPLETE: 100%|██████████| 300/300 [elapsed: 00:09 remaining: 00:00]COMPLETE: 100%|██████████| 300/300 [elapsed: 00:11 remaining: 00:00]
+2023-01-20 16:48:26,083 Sleeping for 7s. Reason: PENDING
+2023-01-20 16:48:35,753 Running model_3
+2023-01-20 16:48:47,045 model_3 took 11.3s (6 recycles) with pLDDT 73 and ptmscore 0.501
+2023-01-20 16:48:47,448 Running model_4
+2023-01-20 16:48:58,782 model_4 took 11.3s (6 recycles) with pLDDT 69.3 and ptmscore 0.488
+2023-01-20 16:48:59,195 Running model_5
+2023-01-20 16:49:10,533 model_5 took 11.3s (6 recycles) with pLDDT 71.3 and ptmscore 0.463
+2023-01-20 16:49:10,904 Running model_1
+2023-01-20 16:49:22,214 model_1 took 11.3s (6 recycles) with pLDDT 76.1 and ptmscore 0.502
+2023-01-20 16:49:22,630 Running model_2
+2023-01-20 16:49:33,970 model_2 took 11.3s (6 recycles) with pLDDT 74.2 and ptmscore 0.477
+2023-01-20 16:49:34,383 reranking models by multimer
+2023-01-20 16:49:35,193 Query 4/4: A_HT_DHD_36__A_HT_DHD_36 (length 58)
+2023-01-20 16:49:35,203 Running model_3
+2023-01-20 16:49:46,516 model_3 took 11.3s (6 recycles) with pLDDT 60.1 and ptmscore 0.4
+2023-01-20 16:49:46,950 Running model_4
+2023-01-20 16:49:58,266 model_4 took 11.3s (6 recycles) with pLDDT 60 and ptmscore 0.414
+2023-01-20 16:49:58,726 Running model_5
+2023-01-20 16:50:10,029 model_5 took 11.3s (6 recycles) with pLDDT 80.7 and ptmscore 0.538
+2023-01-20 16:50:10,471 Running model_1
+2023-01-20 16:50:21,776 model_1 took 11.3s (6 recycles) with pLDDT 80.1 and ptmscore 0.51
+2023-01-20 16:50:22,163 Running model_2
+2023-01-20 16:50:33,445 model_2 took 11.3s (6 recycles) with pLDDT 94.5 and ptmscore 0.768
+2023-01-20 16:50:33,888 reranking models by multimer
+2023-01-20 16:50:34,733 Done
