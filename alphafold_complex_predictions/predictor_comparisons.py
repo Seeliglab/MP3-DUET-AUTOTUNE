@@ -102,7 +102,6 @@ def get_all_baseline_sets():
     bicpa_scores = load('PNIC_bcipa.bin')
     icipa_core_vert_scores = load('PNIC_icipa_core_vert.bin')
     icipa_nter_core_scores = load('PNIC_icipa_nter_core.bin')
-    print (icipa_nter_core_scores)
     qcipa_scores = load('PNIC_qcipa.bin')
 
     d=load_score_file("PNIC-complete.out")

@@ -6,7 +6,7 @@ new_rc_params = {'text.usetex': False,
 "svg.fonttype": 'none'
 }
 mpl.rcParams.update(new_rc_params)
-
+"""
 jerala_pros = ['Jerala_P1', 'Jerala_P2', 'Jerala_P3', 'Jerala_P4', 'Jerala_P5', 'Jerala_P6', 'Jerala_P7', 'Jerala_P8', 'Jerala_P9', 'Jerala_P10', 'Jerala_P11', 'Jerala_P12']
 
 #Jerala libraries
@@ -25,9 +25,9 @@ replicate_2_flat_no_autoact =  process_fusion_dataframe(replicate_2_flat_no_auto
 replicate_3_flat_no_autoact = pd.read_csv('../processing_pipeline/processed_replicates/l67_flat_no_autoactivators.csv')
 replicate_3_flat_no_autoact =  process_fusion_dataframe(replicate_3_flat_no_autoact)
 replicate_4_flat_no_autoact = pd.read_csv('../processing_pipeline/processed_replicates/new_1_smaller_flat_no_autoactivators.csv')
-replicate_4_flat_no_autoact =  process_fusion_dataframe(replicate_3_flat_no_autoact)
+replicate_4_flat_no_autoact =  process_fusion_dataframe(replicate_4_flat_no_autoact)
 replicate_5_flat_no_autoact = pd.read_csv('../processing_pipeline/processed_replicates/new_2_smaller_flat_no_autoactivators.csv')
-replicate_5_flat_no_autoact =  process_fusion_dataframe(replicate_3_flat_no_autoact)
+replicate_5_flat_no_autoact =  process_fusion_dataframe(replicate_5_flat_no_autoact)
 
 
 #merge together
@@ -122,7 +122,7 @@ x = make_specific_order_lower_triangle(order_libraries, df_to_graph, 'correl',  
 y = make_specific_order_lower_triangle(order_libraries, df_to_graph, 'rho',  get_diag = False)
 y = y.T
 make_double_heatmap(x, y, graph_labels, 'copper_r', 'bone_r', size_1 = 4.5, size_2 = 4.5,show_names = False, annot = True, font_size = 8, saveName= 'correls_enrich_v_plfc.svg', show=False)
-
+"""
 #woolfson kd P-LFC and enrichemnt comparisons 
 
 woolfsons = ['AN4', 'AN35', 'AN3', 'BN4', 'BN35', 'BN3']

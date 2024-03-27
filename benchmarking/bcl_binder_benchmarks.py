@@ -24,7 +24,7 @@ homo_bcl= pd.read_csv('../processing_pipeline/merged_replicates/deseq_bcl_psuedo
 homo_bcl = homo_bcl.rename(columns = {'Unnamed: 0': 'PPI'})
 
 both = homo_bcl.merge(bcl_values, on = 'PPI')
-kd_exists =  both[both.capped_out == False]
+kd_exists =  both[both.capped_out == False] #removed points which were outside instrument limits
 
 
 on_targets = "#ffcc00ff"
@@ -58,6 +58,7 @@ f.set_size_inches(1.5,2)
 plt.savefig('./figures/' + 'bcl_new.svg', dpi = 300)
 plt.show()
 
+print ('plaper orig values:')
 print(get_correls(subset, 'ashr_log2FoldChange_HIS_TRP', 'count', log=True))
 print(get_correls(subset, 'ashr_log2FoldChange_HIS_TRP', 'count', log=False))
 
@@ -87,6 +88,8 @@ both['count_nm'] = both['count']/(10**-9)
 print(get_correls(both[both.capped_out == False], 'ashr_log2FoldChange_HIS_TRP', 'count_nm', False))
 print(get_correls(both[both.capped_out == False], 'ashr_log2FoldChange_HIS_TRP' , 'count_nm', True))
 
+
+print ('alpha seq')
 #alpha seq correls
 f, ax = plt.subplots(figsize=(3,3))
 
@@ -221,10 +224,15 @@ plt.savefig("./figures/" + 'ashr_log2FoldChange_HIS_TRP'  + '_cap.svg' )
 plt.show()
 
 #t-tests 
-print (ttest_ind(both[both.capped_out == False].batched_val, both[both.capped_out == True].batched_val, equal_var=True, alternative = 'greater'))
-print (ttest_ind(both[both.capped_out == False].pairwise_val, both[both.capped_out == True].pairwise_val, equal_var=True, alternative = 'greater'))
-print (ttest_ind(both[both.capped_out == False].ashr_log2FoldChange_HIS_TRP, both[both.capped_out == True].ashr_log2FoldChange_HIS_TRP, equal_var=True, alternative = 'greater'))
-
+print ('alpha-seq batched')
+res = ttest_ind(both[both.capped_out == False].batched_val, both[both.capped_out == True].batched_val, equal_var=True, alternative = 'greater')
+print (res)#, res.confidence_interval())
+print ('alphaseq pairwise')
+res = ttest_ind(both[both.capped_out == False].pairwise_val, both[both.capped_out == True].pairwise_val, equal_var=True, alternative = 'greater')
+print (res)#, res.confidence_interval())
+print ('mp3seq')
+res = ttest_ind(both[both.capped_out == False].ashr_log2FoldChange_HIS_TRP, both[both.capped_out == True].ashr_log2FoldChange_HIS_TRP, equal_var=True, alternative = 'greater')
+print (res)#, res.confidence_interval())
 #low values 
 f, ax = plt.subplots(figsize=(3,3))
 

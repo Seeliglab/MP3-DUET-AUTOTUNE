@@ -27,25 +27,30 @@ jerala_pros = ['Jerala_P1',
 #Make heatmap of measurements
 #all 5 replicates
 flat_df_3 = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_flat_autotune_5_small.csv')
-print (flat_df_3)
+print (flat_df_3.shape)
+
 flat_df_3.rename(columns = {'Unnamed: 0':'PPI'}, inplace = True)
+print (flat_df_3.columns)
 all_5s = make_specific_order(jerala_pros, flat_df_3, 'ashr_log2FoldChange_HIS_TRP')
 
 #four replicates (missing 10,11 homodimer)
 flat_df = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_flat_autotune_4_small.csv')
 flat_df.rename(columns = {'Unnamed: 0':'PPI'}, inplace = True)
+print (flat_df.columns)
 all_4s = make_specific_order(jerala_pros, flat_df, 'ashr_log2FoldChange_HIS_TRP')
+print (flat_df.shape)
 
 #three replicates (missing 9 homodimer)
 flat_df = pd.read_csv('../processing_pipeline/merged_replicates/deseq_jerala_flat_autotune_3_small.csv')
 flat_df.rename(columns = {'Unnamed: 0':'PPI'}, inplace = True)
+print (flat_df.columns)
 all_3s = make_specific_order(jerala_pros, flat_df, 'ashr_log2FoldChange_HIS_TRP')
-
+print (flat_df.shape)
 
 #for those with nans, fill with 2 values 
 all_4s[np.isnan(all_4s)] = all_3s[np.isnan(all_4s)]
 all_5s[np.isnan(all_5s)] = all_4s[np.isnan(all_5s)]
-print (all_5s)
+#print (all_5s)
 
 #save heatmap 
 make_square_heatmap(all_5s, float('-inf'), jerala_pros, 'bone_r', False,2.5,2, 'jerala_heatmap.svg')
@@ -53,13 +58,13 @@ make_square_heatmap(all_5s, float('-inf'), jerala_pros, 'bone_r', False,2.5,2, '
 
 jerala_target_ors, jerala_target_ppis, jerala_true_flat, jerala_true_folded = get_jerala_values()
 
-#all 3
+#all 5
 on_targets = "#ffcc00ff"
 off_targets = "#782167ff"
 f, ax = plt.subplots()
 subset = jerala_true_flat.merge(flat_df_3, on = 'PPI')
 print (subset.on_target.value_counts())
-subset = subset[subset['Fold activation'] > 0.1]
+print (subset.shape)
 plt.errorbar(y = subset[subset.on_target == False]['Fold activation'],
              x = subset[subset.on_target == False]['ashr_log2FoldChange_HIS_TRP'], 
              xerr= subset[subset.on_target == False]['ashr_lfcSE_HIS_TRP'], 
